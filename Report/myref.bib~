@@ -1,0 +1,8 @@
+@INPROCEEDINGS{Vlassis,
+    author = {Nikos Vlassis},
+    title = {A Concise Introduction to Multiagent Systems and Distributed},
+    booktitle = {Artificial Intelligence. Synthesis Lectures on Artificial Intelligence and Machine Learning. Morgan & Claypool Publishers},
+    year = {2007}
+}
+
+% AUTHOR, TITLE, JOURNAL, YEAR, VOLUME, NUMBER, PAGES, MONTH, NOTE
