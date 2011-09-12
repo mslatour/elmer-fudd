@@ -18,14 +18,14 @@ echo "* Created by Jelle Kok                                          *"
 echo "* Copyright 2002-2003.  All rights reserved.                    *"
 echo "*****************************************************************"
 
-pursuit_dir="/opt/stud/mas/bin"
+pursuit_dir="../../bin"
 pursuit="${pursuit_dir}/pursuit"
 pursuit_conf="pursuit.conf"
-monitor_dir="/opt/stud/mas/bin"
+monitor_dir="${pursuit_dir}"
 monitor="${monitor_dir}/pursuit_monitor"
 monitor_conf="monitor.conf"
 predator="python predator.py"
-prey="/opt/stud/mas/bin/prey"
+prey="${pursuit_dir}/prey"
 
 ${pursuit} -conf ${pursuit_conf} &    # start the server (no visualization yet)
 sleep 1
