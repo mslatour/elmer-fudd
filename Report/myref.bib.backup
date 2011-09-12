@@ -1,0 +1,23 @@
+@book{DM,
+title = {Reinforcement Learning: An Introduction},
+author = {Sutton, R.S., and Barto, A.G.},
+publisher = {The MIT Press},
+year = {1988},
+month = {March}
+}
+
+% AUTHOR, TITLE, JOURNAL, YEAR, VOLUME, NUMBER, PAGES, MONTH, NOTE
+@unpublished{weij,
+title = "One Player Poker - Decision Making",
+author = "Jurriaans, R.C. and van der Weij, B.J.",
+year = "2011",
+}
+
+@article{Kaelbling,
+author = "Kaelbling, L.P. and Littman, M.L. and Cassandra, A.R.",
+title = "Planning and acting in partially observable stochastic domains",
+journal = "Artificial Intelligence Journal",
+year = "1998",
+volume = "101",
+pages = "99-134"
+}
