@@ -1,0 +1,5 @@
+The following packages may need to be installed in order to run the start.sh correctly.
+( At least for fedora 15: )
+* compat-libstdc++-33-3.2.3-68.1
+* freeglut-2.6.0-6
+* libXmu-1.1.0-2
