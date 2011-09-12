@@ -1,0 +1,15 @@
+Course: Multiagent Systems and Distributed AI
+
+Files in this directory are related to the lab course of 
+Multiagent Systems and Distributed AI and contains the files 
+necessary to use the 'Pursuit domain' software.
+
+The subdirectories contains the following files:
+bin     - binary software needed for the course
+doc     - manual and assignments for the used software
+include - header files needed for compiling the c++ sources
+lib     - libraries needed for compiling the c++ sources
+src     - sources needed for the course. Students should adjust 
+          these sources. It is possible to work with Java, C++
+          or python.
+solaris - solaris binaries and libraries of the software (deprecated)
