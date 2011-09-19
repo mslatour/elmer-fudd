@@ -113,18 +113,25 @@ class Predator:
 # SimplePredator CLASS
 
 class SimplePredator(Predator):
+
 	def determineMovementCommand( self ):
-		rand = random.randint(0, 4)
-		if(rand == 0):
-			msg = "(move south)"
-		elif(rand == 1):
-			msg = "(move north)"
-		elif(rand == 2):
-			msg = "(move west)"
-		elif(rand == 3):
-			msg = "(move east)"
-		elif(rand == 4):
-			msg = "(move none)"
+		msg = "(move none)"		
+		closestprey = sorted(self.prey_distance_matrix)[0]
+		x = closestprey[1]
+		y = closestprey[2]	
+
+		if math.abs(x) > math.abs(y):
+			#walk x direction
+			if x > 0:
+				msg = "(move east)"
+			else:
+				msg = "(move west)"
+		else:
+			#walk y direcrion
+			if y > 0:
+				msg = "(move north)"
+			else:
+				msg = "(move south)"
 		return msg
     
 	def processVisualInformation( self, msg ): 
