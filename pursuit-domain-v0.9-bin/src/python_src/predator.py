@@ -121,7 +121,7 @@ class SimplePredator(Predator):
 		x = closestprey[1]
 		y = closestprey[2]	
 
-		if math.abs(x) > math.abs(y):
+		if abs(x) > abs(y):
 			#walk x direction
 			if x > 0:
 				msg = "(move east)"
@@ -145,10 +145,11 @@ class SimplePredator(Predator):
 		for o in observations:
 			(obj, x, y) = string.split(o, " ")
 			print obj + " seen at (" + x + ", " + y + ")"
-			# Calculate euclid distance
-			dist = math.hypot(float(x),float(y));
-			# Store tuple of the distance, x and y
-			self.prey_distance_matrix.append((dist,int(x),int(y)));
+			if( obj == "prey" ):
+				# Calculate euclid distance
+				dist = math.hypot(float(x),float(y));
+				# Store tuple of the distance, x and y
+				self.prey_distance_matrix.append((dist,int(x),int(y)));
 	
 	def processEpisodeEnded( self ):
     	# TODO: initialize used variables (if any)
