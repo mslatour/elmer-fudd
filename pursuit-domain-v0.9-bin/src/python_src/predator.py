@@ -110,9 +110,55 @@ class Predator:
         self.sock.close()                                         
         pass
   
+# SimplePredator CLASS
+
+class SimplePredator(Predator):
+	prey_distance_matrix = [];
+	
+	def determineMovementCommand( self ):
+		rand = random.randint(0, 4)
+		if(rand == 0):
+			msg = "(move south)"
+		elif(rand == 1):
+			msg = "(move north)"
+		elif(rand == 2):
+			msg = "(move west)"
+		elif(rand == 3):
+			msg = "(move east)"
+		elif(rand == 4):
+			msg = "(move none)"
+		return msg
+    
+	def processVisualInformation( self, msg ): 
+		self.prey_distance_matrix = [];
+		if string.find( msg, '(see)' ) == 0:
+			return
+		# strip the '(see ' and the ')'
+		msg = msg[6:-3]
+		observations = string.split(msg, ') (')
+		for o in observations:
+			(obj, x, y) = string.split(o, " ")
+			print obj + " seen at (" + x + ", " + y + ")"
+			# Calculate euclid distance
+			dist = math.hypot(float(x),float(y));
+			# Store tuple of the distance, x and y
+			self.prey_distance_matrix.append((dist,int(x),int(y)));
+	
+	def processEpisodeEnded( self ):
+    	# TODO: initialize used variables (if any)
+		pass
+       
+	def processCollision( self ):
+    	# TODO: is called when predator collided or penalized
+		pass
+
+	def processPenalize( self ):
+    	# TODO: is called when predator collided or penalized
+		pass
+	
 
 if __name__ == "__main__":
 
-    predator = Predator()
+    predator = SimplePredator()
     predator.connect()
     predator.mainLoop()
