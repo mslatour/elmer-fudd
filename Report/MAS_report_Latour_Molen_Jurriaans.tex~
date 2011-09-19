@@ -81,7 +81,7 @@ In this paper we will solve a predator-prey game within the PURSUIT-domain\footn
 
 \begin{figure}[h!tb]
 \centering
-\includegraphics[width=0.6\textwidth]{img/toroidal}
+\includegraphics[width=0.5\textwidth]{img/toroidal}
 \caption{Orthogonal movement in a toroidal world}
 \label{fig_torwor}
 \end{figure}
