@@ -113,6 +113,8 @@ class Predator:
 # SimplePredator CLASS
 
 class SimplePredator(Predator):
+	prey_distance_matrix = [];
+	
 	def determineMovementCommand( self ):
 		rand = random.randint(0, 4)
 		if(rand == 0):
@@ -128,6 +130,7 @@ class SimplePredator(Predator):
 		return msg
     
 	def processVisualInformation( self, msg ): 
+		self.prey_distance_matrix = [];
 		if string.find( msg, '(see)' ) == 0:
 			return
 		# strip the '(see ' and the ')'
@@ -136,9 +139,11 @@ class SimplePredator(Predator):
 		for o in observations:
 			(obj, x, y) = string.split(o, " ")
 			print obj + " seen at (" + x + ", " + y + ")"
-			# implementation should be done by students
-			# TODO: process these relative x and y coordinates
-
+			# Calculate euclid distance
+			dist = math.hypot(float(x),float(y));
+			# Store tuple of the distance, x and y
+			self.prey_distance_matrix.append((dist,int(x),int(y)));
+	
 	def processEpisodeEnded( self ):
     	# TODO: initialize used variables (if any)
 		pass
