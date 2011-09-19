@@ -77,20 +77,6 @@ Robrecht \textsc{Jurriaans} & Sander \textsc{Latour} & Hessel \textsc{Molen}\\
 
 \section{Introduction}\label{introduction}
 %\input{introduction}
-In this paper we will solve a predator-prey game within the PURSUIT-domain\footnote{http://www.cs.cmu.edu/afs/cs/usr/pstone/public/papers/97MAS-survey/node8.html} where a group of predators have to hunt down a number of prey. The world consists of an $nxm$ grid in which the agents can move either to the four orthogonal squares or to all eight surrounding squares. The world used here is a toroidal world in which the agents can move of the grid and emerge on the other side of the grid as seen in figure \ref{fig_torwor}. The initial condition that needs to be satisfied in order for a predator to capture a prey is that the predator moves to the cell in which the prey is located. 
-
-\begin{figure}[h!tb]
-\centering
-\includegraphics[width=0.6\textwidth]{img/toroidal}
-\caption{Orthogonal movement in a toroidal world}
-\label{fig_torwor}
-\end{figure}
-
-\paragraph{Agent Behaviour}
-The prey can either move to any unoccupied cell of the four cells located orthogonally around the prey with a probability of $0.8$ or stand still with a probability of $0.2$. The initial behaviour of the predator is also random and does not use the information retrieved by the predators sensors.
-
-\paragraph{Overview of Paper}
-In section \ref{theory} we will discuss both rational independent agents and basic coordination between multiple agents. In section \ref{application} we will discuss how coordination can be applied to improve efficiency in the predator-prey task. We will then describe our implementation in section \ref{implementation}. Finally we will show the benchmark of our implementation in section \ref{experiments} and draw conclusions from the results in section \ref{conclusion}.
 
 
 \section{Theory}\label{theory}
