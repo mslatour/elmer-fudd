@@ -163,9 +163,104 @@ class SimplePredator(Predator):
     	# TODO: is called when predator collided or penalized
 		pass
 	
+# Assignment1Predator CLASS
+class Assignment1Predator(Predator):
+	prey_distance_matrix = [];
+	
+	def determineMovementCommand( self ):
+		msg = "(move none)"		
+
+		prey_matrix = self.prey_distance_matrix[0]
+		prey_matrix = prey_matrix[1:]
+		myself = prey_matrix[0]
+
+
+		if myself in [(0,0), (0,1), (0,-1), (1,0), (-1,0)]:
+			msg = "(move none)"
+		else: 
+			# idx: 0=left, 1=top, 2=bottom, 3=right
+			xsort = sorted(prey_matrix, key=lambda pos : pos[0])
+			xidx = xsort.index(myself)
+			ysort = sorted(prey_matrix, key=lambda pos : pos[1])
+			yidx = ysort.index(myself)
+
+			if xidx == 0:
+				myself = (myself[0]+1, myself[1])
+			elif yidx == 0:
+				myself = (myself[0], myself[1]-1)
+			elif yidx == 3:
+				myself = (myself[0], myself[1]+1)
+			elif xidx == 3:
+				myself = (myself[0]-1, myself[1])
+
+			print myself
+
+			if abs(myself[0]) > abs(myself[1]):
+				if myself[0] > 0:
+					msg = "(move east)"
+				else:
+					msg = "(move west)"
+			else:
+				if myself[1] > 0:
+					msg = "(move north)"
+				else:
+					msg = "(move south)"  
+
+		print msg
+		return msg
+    
+	def processVisualInformation( self, msg ): 
+		self.prey_distance_matrix = [];
+		if string.find( msg, '(see)' ) == 0:
+			return
+		# strip the '(see ' and the ')'
+		msg = msg[6:-3]
+		observations = string.split(msg, ') (')
+		
+		preys = []
+		preds = []
+		for o in observations:
+			(obj, x, y) = string.split(o, " ")
+			print obj + " seen at (" + x + ", " + y + ")"
+			if( obj == "prey" ):
+				preys.append((int(x),int(y)))
+			if( obj == "predator" ):
+				preds.append((int(x),int(y)))
+
+		for p in preys:
+			self.prey_distance_matrix.append([abs(p[0])+abs(p[1]), p])			
+			for pr in preds:
+				dx = p[0] - pr[0] 	
+				if dx > 7:
+					dx -= 15
+				elif dx < -7:
+					dx += 15
+				dy = p[1] - pr[1]
+				if dy > 7:
+					dy -= 15
+				elif dy < -7:
+					dy += 15
+				self.prey_distance_matrix[-1].append((dx,dy))
+				self.prey_distance_matrix[-1][0] += abs(dx)+abs(dy)
+			
+		self.prey_distance_matrix.sort()
+
+		#print str(self.prey_distance_matrix)
+	
+	def processEpisodeEnded( self ):
+    	# TODO: initialize used variables (if any)
+		pass
+       
+	def processCollision( self ):
+    	# TODO: is called when predator collided or penalized
+		pass
+
+	def processPenalize( self ):
+    	# TODO: is called when predator collided or penalized
+		pass
 
 if __name__ == "__main__":
 
-    predator = SimplePredator()
+    predator = Assignment1Predator()
     predator.connect()
     predator.mainLoop()
