@@ -4,6 +4,8 @@ from socket import *
 import string
 import random
 import math
+	
+gridsize = 15
 
 # MAIN CLASS
 class Predator:
@@ -165,7 +167,6 @@ class SimplePredator(Predator):
 	
 # Assignment1Predator CLASS
 class Assignment1Predator(Predator):
-	grid_size = 15
 
 	# When initialized:
 	# A matrix with a row for each prey, where each row contains:
@@ -184,13 +185,16 @@ class Assignment1Predator(Predator):
 		
 		# (me_index, prey_vector) = getClosestPreyVector(distance_matrix)
 		prey_vector = self.getClosestPreyVector(self.prey_distance_matrix)
+		print "Prey vector:",prey_vector
 		me = prey_vector[0]
 		
 		formation_matrix = self.extractFormationMatrix(prey_vector[1])
+		print 'Formation matrix:', formation_matrix
 		formation = self.determineBestFormation(formation_matrix)
+		print 'Formation:', formation
 
 		# Go to the north position
-		if formation[0] == me
+		if formation[0] == me:
 			if prey_vector[1][prey_vector[0]][2]+1  > 0:
 				msg = "(move north)"
 			elif prey_vector[1][prey_vector[0]][2]+1 == 0:
@@ -206,7 +210,7 @@ class Assignment1Predator(Predator):
 			else:
 				msg = "(move west)"
 		# Go to the south position
-		elif formation[2] == me
+		elif formation[2] == me:
 			if prey_vector[1][prey_vector[0]][2]-1  > 0:
 				msg = "(move north)"
 			elif prey_vector[1][prey_vector[0]][2]-1 == 0:
@@ -224,41 +228,51 @@ class Assignment1Predator(Predator):
 		
 		return msg
 
-	def determineBestFormation(formation_matrix):
+	def determineBestFormation(self,formation_matrix):
+		print '\n'
+		print '############## DETERMINE BEST FORMATION #################'
+		print formation_matrix
+		print '---------------------------------------------------------'
 		# top, right, bottom, left
 		positions = [ 0, 0, 0, 0 ]
 
 		# For each predator i
-		for ( i in range(0, len(formation_matrix) ) ):
+		for i in range(0, len(formation_matrix)):
 			# Determine best position
 			closest_pos = self.getClosestFormationPosition(formation_matrix[i])
+			print "Closest position for",i,":",closest_pos
 			# Check if position is vacant
 			if positions[closest_pos] == 0:
 				# If position is vacant, store predator i
+				print 'Position is vacant, store ',i
 				positions[closest_pos] = i
 			else:
 				# If another predator is already stored on this position
 				# then resolve the conflict and retry
+				print 'Position is taken by ',positions[closest_pos]
+				print 'Resolve conflict between ',i,' and ',positions[closest_pos],', formation_matrix before', formation_matrix
 				formation_matrix = self.resolveConflict(formation_matrix, positions[closest_pos], i, closest_pos)
+				print 'Conflict resolved, formation after', formation_matrix
 				return self.determineBestFormation( formation_matrix )
+		return positions;
 		
-	def getClosestFormationPosition(formation_vector):
+	def getClosestFormationPosition(self,formation_vector):
 		min_index = 0
 		min_value = 'inf'
-		for(index in range(0,len(formation_vector)):
+		for index in range(0,len(formation_vector)):
 			if formation_vector[index] < min_value:
 				min_index = index
 				min_value = formation_vector[index]
 		return min_index
 
-	def resolveConflict(formation_matrix, pred1, pred2, pos):
+	def resolveConflict(self,formation_matrix, pred1, pred2, pos):
 		if( pred1 < pred2):
 			formation_matrix[pred2][pos] = 'inf'
 		else:
 			formation_matrix[pred1][pos] = 'inf'
 		return formation_matrix
 
-	def getClosestPreyVector(prey_matrix):
+	def getClosestPreyVector(self,prey_matrix):
 		closest_prey_vector = prey_matrix[0][1]
 
 		l = len(prey_matrix)
@@ -298,11 +312,16 @@ class Assignment1Predator(Predator):
 		return (idx, closest_prey_vector)
 		
 
-	def extractFormationMatrix(prey_vector):
+	def extractFormationMatrix(self,predator_vector):
 		formation_matrix = []
-		for( i in range(1,len(prey_vector)-1) ):
+		for p in predator_vector:
 			formation_matrix.append(
-				[ abs(prey_vector[i][0])+abs(rey_vector[i][1]+1), abs(prey_vector[i][0]+1)+abs(prey_vector[i][1]), abs(prey_vector[i][0])+abs(prey_vector[i][1]-1), abs(prey_vector[i][0]-1)+abs(prey_vector[i][1]) ]
+				[
+					abs(p[1])+abs(p[2]+1), 
+					abs(p[1]+1)+abs(p[2]), 
+					abs(p[1])+abs(p[2]-1), 
+					abs(p[1]-1)+abs(p[2]) 
+				]
 			)
 		return formation_matrix
     
@@ -326,19 +345,19 @@ class Assignment1Predator(Predator):
 				preds.append((int(x),int(y)))
 		
 		for p in preys:
-			prey_vector = [abs(p[0])+abs(p[1]),[p]]	
+			prey_vector = [abs(p[0])+abs(p[1]), [(abs(p[0])+abs(p[1]), p[0], p[1])]]
 			for pr in preds:
 				dx = p[0] - pr[0] 	
 				# transform dx into smallest distance
 				if dx > math.floor(.5*gridsize):
 					dx -= gridsize
-				elif dx < math.floor(.5*gridsize):
+				elif dx < -1*math.floor(.5*gridsize):
 					dx += gridsize
 				dy = p[1] - pr[1]
 				# transform dy into smallest distance
 				if dy > math.floor(.5*gridsize):
 					dy -= gridsize
-				elif dy < math.floor(.5*gridsize):
+				elif dy < -1*math.floor(.5*gridsize):
 					dy += gridsize
 				pred_tuple = (abs(dx)+abs(dy), dx, dy)
 				prey_vector[1].append(pred_tuple)
