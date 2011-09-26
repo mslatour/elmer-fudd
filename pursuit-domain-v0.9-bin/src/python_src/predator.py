@@ -200,7 +200,44 @@ class Assignment1Predator(Predator):
 		return msg
 
 	def getClosestPreyVector(prey_matrix):
-		pass
+		closest_prey_vector = prey_matrix[0][1]
+
+		l = len(prey_matrix)
+		if (l > 1) and (prey_matrix[0][0] == prey_matrix[1][0]):
+			num_of_pred = len(prey_matrix[0][1])
+
+			min_dist = prey_matrix[0][0]
+			# calculate non-absolute x & y cumulative manhatten distance
+			min_cumX = prey_matrix[0][1][0][1]
+			min_cumY = prey_matrix[0][1][0][2]
+			for i in range(1, num_of_pred):
+				min_cumX += prey_matrix[0][1][i][1]	
+				min_cumY += prey_matrix[0][1][i][2]	
+
+			for i in range(1,l):
+				if prey_matrix[i][0] == min_dist:	
+					# calculate non-absoulte x & y cumulative manhatten distance
+					cumX = prey_matrix[i][1][0][1]
+					cumY = prey_matrix[i][1][0][2]
+					for j in range(1, num_of_pred):
+						cumX += prey_matrix[i][1][j][1]	
+						cumY += prey_matrix[i][1][j][2]
+
+					if (cumX < min_cumX) or ((cumX == min_cumX) and (cumY < min_cumY)):
+						closest_prey_vector = prey_matrix[i][1]
+						min_cumX = cumX
+						min_cumY = cumY
+				else:
+					break
+
+		# keep track of the reasoning predator.
+		myself = closest_prey_vector[0] 
+		#sort: manhatten, smallest-x, smalles-y
+		closest_prey_vector.sort()
+		idx = closest_prey_vector.index(myself)
+
+		return (idx, closest_prey_vector)
+		
 
 	def extractFormationMatrix(prey_vector):
 		pass
@@ -214,6 +251,7 @@ class Assignment1Predator(Predator):
 		msg = msg[6:-3]
 		observations = string.split(msg, ') (')
 		
+		# get predators and preys
 		preys = []
 		preds = []
 		for o in observations:
@@ -223,27 +261,31 @@ class Assignment1Predator(Predator):
 				preys.append((int(x),int(y)))
 			if( obj == "predator" ):
 				preds.append((int(x),int(y)))
-
+		
 		for p in preys:
-			self.prey_distance_matrix.append([abs(p[0])+abs(p[1]), p])			
+			prey_vector = [abs(p[0])+abs(p[1]),[p]]	
 			for pr in preds:
 				dx = p[0] - pr[0] 	
+				# transform dx into smallest distance
 				if dx > math.floor(.5*gridsize):
 					dx -= gridsize
 				elif dx < math.floor(.5*gridsize):
 					dx += gridsize
 				dy = p[1] - pr[1]
+				# transform dy into smallest distance
 				if dy > math.floor(.5*gridsize):
 					dy -= gridsize
 				elif dy < math.floor(.5*gridsize):
 					dy += gridsize
-				self.prey_distance_matrix[-1].append((dx,dy))
-				self.prey_distance_matrix[-1][0] += abs(dx)+abs(dy)
-			
+				pred_tuple = (abs(dx)+abs(dy), dx, dy)
+				prey_vector[1].append(pred_tuple)
+				# increase cumulative distance
+				prey_vector[0] += pred_tuple[0]
+			self.prey_distance_matrix.append(prey_vector)
+
+		# sort on absolute cumulative distance		
 		self.prey_distance_matrix.sort()
 
-		#print str(self.prey_distance_matrix)
-	
 	def processEpisodeEnded( self ):
     	# TODO: initialize used variables (if any)
 		pass
