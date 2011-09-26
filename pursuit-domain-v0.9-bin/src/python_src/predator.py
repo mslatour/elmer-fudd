@@ -240,8 +240,17 @@ class Assignment1Predator(Predator):
 		
 
 	def extractFormationMatrix(prey_vector):
-		pass
-		
+		formation_matrix = []
+		for( i in range(1,len(prey_vector)-1) ):
+			formation_matrix.append(
+				[
+					abs(prey_vector[i][0])+abs(rey_vector[i][1]+1),
+					abs(prey_vector[i][0]+1)+abs(prey_vector[i][1]),
+					abs(prey_vector[i][0])+abs(prey_vector[i][1]-1),
+					abs(prey_vector[i][0]-1)+abs(prey_vector[i][1])
+				]
+			)
+		return formation_matrix
     
 	def processVisualInformation( self, msg ): 
 		self.prey_distance_matrix = []
