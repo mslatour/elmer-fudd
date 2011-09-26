@@ -158,7 +158,7 @@ Once a prey has been selected, the predators need to agree on which cell they sh
 % Manhattan distance prey
 Since predators can only move orthogonally the best distance to take is the manhattan distance which is a summation of the x distance and the y distance. If predators were allowed to move to the four diagonal cells it would be better to use euclidean distance. 
 
-
+Each predator uses the observation to create matrices that hold information about the distances of the predators to each prey. These are used to derive which prey is closest by using algorithm \ref{alg_hunt}. The distances of the predators to the prey that has the smallest average distance to the predators is then split into the distances to the four surrounding cells of the prey. This results in a 4 by 4 matrix in which the manhattan distance of each of the four predators to each of the four cells is contained. This matrix is then used to derive the best cell for each predator to go to. This is done iteratively because it is possible that two of the other predators want to attack the same cell so that one of them is forced to another cell which could be the same cell that the predator wanted to attack. For each predator the closest cell is calculated, if two predators have the same cell they want to attack the distance to that cell is set to infinite for the predator that was closest to that cell. The algorithm is then repeated so that the predator ignores that cell.
 
 \section{Experiments and results}\label{experiments}
 %\input{benchmark}
