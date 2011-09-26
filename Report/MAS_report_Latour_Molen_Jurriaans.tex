@@ -94,14 +94,71 @@ In section \ref{theory} we will discuss both rational independent agents and bas
 
 
 \section{Theory}\label{theory}
-%\input{theory}
-\cite{Vlassis}
+% Multi Agent Systems
+In a multi agent system it is necessary for each agent to rationally decide on what action all agents will take so that the joint action maximises the reward. An easy method to accomplish this is to have communication between agents so that all agents can communicate their observations to one agent which then selects the joint action that maximises the reward and communicates this joint action back to all other agents. If the agents are incapable of communication it becomes important for each agent to rationally derive the action each agent needs to take. It is then important that each agent finds the same joint action. For this to happen it is necessary to have coordination between agents\cite{Vlassis} since it is possible that multiple joint actions maximise the reward. However, if agents select different joint actions it may very well be that the resulting joint action does not maximise the reward.
+
+
+% Conventions/Roles
+
 
 \section{Application}\label{application}
-%\input{application}
+% Predators selecting prey
+In the case of the pursuit-domain coordination is very important. If there are multiple prey and predators needs to cooperatively hunt the same prey, it is necessary for each predator to select the same prey to hunt. With communication the predators could simply elect a leader to which they broadcast their closest prey and then the leader selects the prey to attack and communicates this back to the other predators.
+
+However, if communication is not possible the predators are dependent of using their observations to select the same prey based on their independent observations. The first problem is to find the prey closest to all predators. Since the world is toroidal it is impossible to determine this without the knowledge of the size of the world as seen in table \ref{tab_disprob}. Predator 1 sees the prey to its left with a distance of 1 cell, while it sees predator 2 to the right with a distance of 3 cells. If predator 1 does not know the size of the world it will deduct that predator 2 has a distance of 4 cells to the prey. However, predator 2 is only 1 cell removed from the prey and deducts furthermore that predator 1 also has a distance to the prey of 4 cells.
+
+\begin{table}[h!tb]
+\centering
+	\caption{A 1x5 world in which the distance to a prey is different for each predator}
+\label{tab_disprob}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+	prey & predator 1& & &predator 2 \\
+\hline
+\end{tabular}
+\end{table}
+
+If we do know the size of the world we could find the closest prey, but this gives rise to another problem in which two of the prey have an equal distance to the predators. So now the predators need a convention to select the prey to attack. This would require the predators to have either an order in which it is specified which prey to attack first. Because the observations are in random order it is impossible to know which prey is the first to attack in the hierarchy. To do this it is possible to order the prey based on their combined relative distance. For instance, if the combined distances to prey 1 is 5 cells over the x-axis and prey 2 is -5 cells over the x-axis, which is essentially the same distance, we could simply state that the largest combined distance is the closest. In this case prey 1 is attacked first. If this fails, the same can be done using the y-axis and if this fails then both prey are located in the same cell in which case the joint action that minimises the distance would be the same for both prey.
+
+% Predators determining which predator needs to occupy which cell
+Once a prey has been selected, the predators need to agree on which cell they should occupy. To do this the predators can calculate the distance to each of the four cells for each of the predators and choose the cell that has the smallest distance to the predator. If two predators have the same cell they want to occupy the one with the smallest distance to that cell will ignore this cell and take the second cell which is closest to the predator. This results in the predators to go for the cell which minimises the total distance of the predators to the cells around the prey. In the case of the same distances between cells or between predators to cells, the same ordering can be used as before over the x- and y-axis. The full algorithm can be found in algorithm \ref{alg_hunt}.
+
+\begin{algorithm}
+\caption{Algorithm for determining next action}
+\label{alg_hunt}
+	\begin{algorithmic}
+\REQUIRE $Dprey=\textrm{Distances to each prey}$, $Dpred=\textrm{Distances to each predator}$
+\STATE $n=\textrm{Size of world}$
+\STATE \COMMENT{For each prey calculate the total distance to all predators}
+\FORALL{$Dprey$} 
+\STATE $CrtDis=0$
+\FORALL{$Dpred$}
+\STATE $CrtDis += (Dprey+Dpred)\mod n$
+\ENDFOR
+\IF{$CrtDis<MinDis$}
+\STATE $MinDis=CrtDis$
+\STATE $MinPrey = Dprey$
+\ENDIF
+\ENDFOR
+
+\STATE \COMMENT{Select closest cell to attack}
+\FORALL{Dpred}
+% Calculate closest cell for each predator
+\STATE Calculate distance to each cell around prey
+\IF{two predators have same closest cell}
+\STATE predator with smallest distance to cell ignores this cell
+\ENDIF
+\ENDFOR
+\STATE move towards designated cell
+\end{algorithmic}
+\end{algorithm}
+
 
 \section{Implementation}\label{implementation}
-%\input{implementation}
+% Manhattan distance prey
+Since predators can only move orthogonally the best distance to take is the manhattan distance which is a summation of the x distance and the y distance. If predators were allowed to move to the four diagonal cells it would be better to use euclidean distance. 
+
+
 
 \section{Experiments and results}\label{experiments}
 %\input{benchmark}
