@@ -113,7 +113,7 @@ class Predator:
 # SimplePredator CLASS
 
 class SimplePredator(Predator):
-	prey_distance_matrix = [];
+	prey_distance_matrix = []
 	
 	def determineMovementCommand( self ):
 		msg = "(move none)"		
@@ -136,7 +136,7 @@ class SimplePredator(Predator):
 		return msg
     
 	def processVisualInformation( self, msg ): 
-		self.prey_distance_matrix = [];
+		self.prey_distance_matrix = []
 		if string.find( msg, '(see)' ) == 0:
 			return
 		# strip the '(see ' and the ')'
@@ -147,9 +147,9 @@ class SimplePredator(Predator):
 			print obj + " seen at (" + x + ", " + y + ")"
 			if( obj == "prey" ):
 				# Calculate euclid distance
-				dist = math.hypot(float(x),float(y));
+				dist = math.hypot(float(x),float(y))
 				# Store tuple of the distance, x and y
-				self.prey_distance_matrix.append((dist,int(x),int(y)));
+				self.prey_distance_matrix.append((dist,int(x),int(y)))
 	
 	def processEpisodeEnded( self ):
     	# TODO: initialize used variables (if any)
@@ -165,52 +165,49 @@ class SimplePredator(Predator):
 	
 # Assignment1Predator CLASS
 class Assignment1Predator(Predator):
-	prey_distance_matrix = [];
+	grid_size = 15
+
+	# When initialized:
+	# A matrix with a row for each prey, where each row contains:
+	# [
+	# 	total_dist, 	The cumulative distance of all predators to the prey
+	#	myPredCoords	The relative coordinates of the prey viewed from me
+	#	iPredCoords		The relative coordinates of the prey viewed from predator i.
+	#	....	The relative coordinates of the prey viewed from predator i+1, i+2, ...
+	# ]
+	prey_distance_matrix = []
 	
 	def determineMovementCommand( self ):
-		msg = "(move none)"		
+		msg = "(move none)"
 
-		prey_matrix = self.prey_distance_matrix[0]
-		prey_matrix = prey_matrix[1:]
-		myself = prey_matrix[0]
+		prey_vector = self.getClosestPreyMatrix(self.prey_distance_matrix)
+		formation_matrix = self.extractFormationMatrix(prey_vector)
 
+		print myself
 
-		if myself in [(0,0), (0,1), (0,-1), (1,0), (-1,0)]:
-			msg = "(move none)"
-		else: 
-			# idx: 0=left, 1=top, 2=bottom, 3=right
-			xsort = sorted(prey_matrix, key=lambda pos : pos[0])
-			xidx = xsort.index(myself)
-			ysort = sorted(prey_matrix, key=lambda pos : pos[1])
-			yidx = ysort.index(myself)
-
-			if xidx == 0:
-				myself = (myself[0]+1, myself[1])
-			elif yidx == 0:
-				myself = (myself[0], myself[1]-1)
-			elif yidx == 3:
-				myself = (myself[0], myself[1]+1)
-			elif xidx == 3:
-				myself = (myself[0]-1, myself[1])
-
-			print myself
-
-			if abs(myself[0]) > abs(myself[1]):
-				if myself[0] > 0:
-					msg = "(move east)"
-				else:
-					msg = "(move west)"
+		if abs(myself[0]) > abs(myself[1]):
+			if myself[0] > 0:
+				msg = "(move east)"
 			else:
-				if myself[1] > 0:
-					msg = "(move north)"
-				else:
-					msg = "(move south)"  
+				msg = "(move west)"
+		else:
+			if myself[1] > 0:
+				msg = "(move north)"
+			else:
+				msg = "(move south)"  
 
 		print msg
 		return msg
+
+	def getClosestPreyVector(prey_matrix):
+		pass
+
+	def extractFormationMatrix(prey_vector):
+		pass
+		
     
 	def processVisualInformation( self, msg ): 
-		self.prey_distance_matrix = [];
+		self.prey_distance_matrix = []
 		if string.find( msg, '(see)' ) == 0:
 			return
 		# strip the '(see ' and the ')'
@@ -231,15 +228,15 @@ class Assignment1Predator(Predator):
 			self.prey_distance_matrix.append([abs(p[0])+abs(p[1]), p])			
 			for pr in preds:
 				dx = p[0] - pr[0] 	
-				if dx > 7:
-					dx -= 15
-				elif dx < -7:
-					dx += 15
+				if dx > math.floor(.5*gridsize):
+					dx -= gridsize
+				elif dx < math.floor(.5*gridsize):
+					dx += gridsize
 				dy = p[1] - pr[1]
-				if dy > 7:
-					dy -= 15
-				elif dy < -7:
-					dy += 15
+				if dy > math.floor(.5*gridsize):
+					dy -= gridsize
+				elif dy < math.floor(.5*gridsize):
+					dy += gridsize
 				self.prey_distance_matrix[-1].append((dx,dy))
 				self.prey_distance_matrix[-1][0] += abs(dx)+abs(dy)
 			
