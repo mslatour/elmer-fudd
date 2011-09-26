@@ -33,9 +33,13 @@ ${predator}   &                       # start clients, only output info pred. 1
 sleep 1
 ${predator} > /dev/null & 
 sleep 1
+${predator} > /dev/null & 
+sleep 1
+${predator} > /dev/null & 
+sleep 1
 ${prey}     > /dev/null & 
 #sleep 1
-${prey}     > /dev/null & 
+#${prey}     > /dev/null & 
 
 ${monitor} -conf ${monitor_conf}       # start visualization
 
