@@ -171,33 +171,92 @@ class Assignment1Predator(Predator):
 	# A matrix with a row for each prey, where each row contains:
 	# [
 	# 	total_dist, 	The cumulative distance of all predators to the prey
-	#	myPredCoords	The relative coordinates of the prey viewed from me
-	#	iPredCoords		The relative coordinates of the prey viewed from predator i.
-	#	....	The relative coordinates of the prey viewed from predator i+1, i+2, ...
+	#	[
+	#		(dist, x, y),	The relative coordinates of the prey viewed from me
+	#		(disti, xi, yi),		The relative coordinates of the prey viewed from predator i
+	#		....	The relative coordinates of the prey viewed from predator i+1, i+2, ...
+	#	]
 	# ]
 	prey_distance_matrix = []
 	
 	def determineMovementCommand( self ):
 		msg = "(move none)"
+		
+		# (me_index, prey_vector) = getClosestPreyVector(distance_matrix)
+		prey_vector = self.getClosestPreyVector(self.prey_distance_matrix)
+		me = prey_vector[0]
+		
+		formation_matrix = self.extractFormationMatrix(prey_vector[1])
+		formation = self.determineBestFormation(formation_matrix)
 
-		prey_vector = self.getClosestPreyMatrix(self.prey_distance_matrix)
-		formation_matrix = self.extractFormationMatrix(prey_vector)
-
-		print myself
-
-		if abs(myself[0]) > abs(myself[1]):
-			if myself[0] > 0:
+		# Go to the north position
+		if formation[0] == me
+			if prey_vector[1][prey_vector[0]][2]+1  > 0:
+				msg = "(move north)"
+			elif prey_vector[1][prey_vector[0]][2]+1 == 0:
+				msg = "(move none)"
+			else:
+				msg = "(move south)"
+		# Go to the right position
+		elif formation[1] == me:
+			if prey_vector[1][prey_vector[0]][1]+1  > 0:
 				msg = "(move east)"
+			elif prey_vector[1][prey_vector[0]][1]+1 == 0:
+				msg = "(move none)"
 			else:
 				msg = "(move west)"
-		else:
-			if myself[1] > 0:
+		# Go to the south position
+		elif formation[2] == me
+			if prey_vector[1][prey_vector[0]][2]-1  > 0:
 				msg = "(move north)"
+			elif prey_vector[1][prey_vector[0]][2]-1 == 0:
+				msg = "(move none)"
 			else:
-				msg = "(move south)"  
-
-		print msg
+				msg = "(move south)"
+		# Go to the west position
+		else:
+			if prey_vector[1][prey_vector[0]][1]-1  > 0:
+				msg = "(move east)"
+			elif prey_vector[1][prey_vector[0]][1]-1 == 0:
+				msg = "(move none)"
+			else:
+				msg = "(move west)"
+		
 		return msg
+
+	def determineBestFormation(formation_matrix):
+		# top, right, bottom, left
+		positions = [ 0, 0, 0, 0 ]
+
+		# For each predator i
+		for ( i in range(0, len(formation_matrix) ) ):
+			# Determine best position
+			closest_pos = self.getClosestFormationPosition(formation_matrix[i])
+			# Check if position is vacant
+			if positions[closest_pos] == 0:
+				# If position is vacant, store predator i
+				positions[closest_pos] = i
+			else:
+				# If another predator is already stored on this position
+				# then resolve the conflict and retry
+				formation_matrix = self.resolveConflict(formation_matrix, positions[closest_pos], i, closest_pos)
+				return self.determineBestFormation( formation_matrix )
+		
+	def getClosestFormationPosition(formation_vector):
+		min_index = 0
+		min_value = 'inf'
+		for(index in range(0,len(formation_vector)):
+			if formation_vector[index] < min_value:
+				min_index = index
+				min_value = formation_vector[index]
+		return min_index
+
+	def resolveConflict(formation_matrix, pred1, pred2, pos):
+		if( pred1 < pred2):
+			formation_matrix[pred2][pos] = 'inf'
+		else:
+			formation_matrix[pred1][pos] = 'inf'
+		return formation_matrix
 
 	def getClosestPreyVector(prey_matrix):
 		pass
@@ -206,12 +265,7 @@ class Assignment1Predator(Predator):
 		formation_matrix = []
 		for( i in range(1,len(prey_vector)-1) ):
 			formation_matrix.append(
-				[
-					abs(prey_vector[i][0])+abs(rey_vector[i][1]+1),
-					abs(prey_vector[i][0]+1)+abs(prey_vector[i][1]),
-					abs(prey_vector[i][0])+abs(prey_vector[i][1]-1),
-					abs(prey_vector[i][0]-1)+abs(prey_vector[i][1])
-				]
+				[ abs(prey_vector[i][0])+abs(rey_vector[i][1]+1), abs(prey_vector[i][0]+1)+abs(prey_vector[i][1]), abs(prey_vector[i][0])+abs(prey_vector[i][1]-1), abs(prey_vector[i][0]-1)+abs(prey_vector[i][1]) ]
 			)
 		return formation_matrix
     
