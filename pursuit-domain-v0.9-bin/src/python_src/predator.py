@@ -193,41 +193,135 @@ class Assignment1Predator(Predator):
 		formation = self.determineBestFormation(formation_matrix)
 		print 'Formation:', formation
 
-		# Go to the north position
+		print 'My distance to the prey: ',prey_vector[1][me]
+
 		if formation[0] == me:
-			if prey_vector[1][prey_vector[0]][2]+1  > 0:
-				msg = "(move north)"
-			elif prey_vector[1][prey_vector[0]][2]+1 == 0:
-				msg = "(move none)"
-			else:
-				msg = "(move south)"
-		# Go to the right position
+			# Go to the north position
+			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]+1)
 		elif formation[1] == me:
-			if prey_vector[1][prey_vector[0]][1]+1  > 0:
-				msg = "(move east)"
-			elif prey_vector[1][prey_vector[0]][1]+1 == 0:
-				msg = "(move none)"
-			else:
-				msg = "(move west)"
-		# Go to the south position
+			# Go to the east position
+			dist2formation = (prey_vector[1][me][1]+1, prey_vector[1][me][2])
 		elif formation[2] == me:
-			if prey_vector[1][prey_vector[0]][2]-1  > 0:
-				msg = "(move north)"
-			elif prey_vector[1][prey_vector[0]][2]-1 == 0:
-				msg = "(move none)"
-			else:
-				msg = "(move south)"
-		# Go to the west position
+			# Go to the south position
+			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]-1)
 		else:
-			if prey_vector[1][prey_vector[0]][1]-1  > 0:
-				msg = "(move east)"
-			elif prey_vector[1][prey_vector[0]][1]-1 == 0:
-				msg = "(move none)"
-			else:
-				msg = "(move west)"
+			# Go to the west position
+			dist2formation = (prey_vector[1][me][1]-1, prey_vector[1][me][2])
 		
+		msg = self.determineMovement( formation, dist2formation, prey_vector)
+
+		if msg == None:
+			msg = '(move none)'
+		# make recursive
+	
+		print msg;	
 		return msg
 
+	def determineMovement(self, formation, dist2formation, prey_vector):
+		print 'Dist2formation',dist2formation
+		if abs(dist2formation[0]) > abs(dist2formation[1]):
+			if dist2formation[0] > 0:
+				# Check if this is not a single choice for the prey
+				if self.determineSingleChoicePrey(formation, prey_vector) == 1:
+					# don't move in the same direction as the prey
+					# so give precedence to the other coordinate
+					if dist2formation[1] == 0:
+						print 'Single choice avoid!!'
+						print dist2formation
+						dist2formation = (dist2formation[0]-gridsize,dist2formation[1])
+						print dist2formation
+					else:
+						dist2formation = (0,dist2formation[1])
+						
+					return self.determineMovement(formation,dist2formation, prey_vector)
+				else:
+					return "(move east)"
+			else:
+				# Check if this is not a single choice for the prey
+				if self.determineSingleChoicePrey(formation, prey_vector) == 3:
+					# don't move in the same direction as the prey
+					# so give precedence to the other coordinate
+					if dist2formation[1] == 0:
+						print 'Single choice avoid!!'
+						print dist2formation
+						dist2formation = (dist2formation[0]-gridsize,dist2formation[1])
+						print dist2formation
+					else:
+						dist2formation = (0,dist2formation[1])
+					return self.determineMovement(formation, dist2formation, prey_vector)
+				else:
+					return "(move west)"
+		elif abs(dist2formation[1]) > abs(dist2formation[0]):
+			if dist2formation[1] > 0:
+				# Check if this is not a single choice for the prey
+				if self.determineSingleChoicePrey(formation, prey_vector) == 0:
+					# don't move in the same direction as the prey
+					# so give precedence to the other coordinate
+					if dist2formation[0] == 0:
+						print 'Single choice avoid!!'
+						print dist2formation
+						dist2formation = (dist2formation[0],dist2formation[1]-gridsize)
+						print dist2formation
+					else:
+						dist2formation = (dist2formation[0],0)
+					return self.determineMovement(formation, dist2formation, prey_vector)
+				else:
+					return "(move north)"
+			else:
+				# Check if this is not a single choice for the prey
+				if self.determineSingleChoicePrey(formation, prey_vector) == 2:
+					# don't move in the same direction as the prey
+					# so give precedence to the other coordinate
+					if dist2formation[0] == 0:
+						print 'Single choice avoid!!'
+						print dist2formation
+						dist2formation = (dist2formation[0],dist2formation[1]+gridsize)
+						print dist2formation
+					else:
+						dist2formation = (dist2formation[0],0)
+				else:
+					return "(move south)"
+		else:
+			if dist2formation[0] == 0:
+				return "(move none)"
+			else:
+				if dist2formation[0] > 0:
+					# Check if this is not a single choice for the prey
+					if self.determineSingleChoicePrey(formation, prey_vector) == 1:
+						# don't move in the same direction as the prey
+						# so give precedence to the other coordinate
+						dist2formation = (0,dist2formation[1])
+						return self.determineMovement(formation, dist2formation, prey_vector)
+					else:
+						return "(move east)"
+				else:
+					if self.determineSingleChoicePrey(formation, prey_vector) == 3:
+						# don't move in the same direction as the prey
+						# so give precedence to the other coordinate
+						dist2formation = (0,dist2formation[1])
+						return self.determineMovement(formation, dist2formation, prey_vector)
+					else:
+						return "(move west)"
+
+
+	# In case there is only one option left for the prey to go to
+	# return the direction in which it will move. If there are more
+	# positions return None
+	def determineSingleChoicePrey(self, formation, prey_vector):
+		# Check if three predators are within one cell of the prey
+		# because that would mean that there is only one free cell 
+		# to where the prey can move
+		
+		free = None;
+			
+		for i in range(0, len(formation) ):
+			if ( prey_vector[1][formation[i]][0] > 1 ):
+				if( free == None ):
+					free = i
+				else:
+					return None
+		return free
+			
 	def determineBestFormation(self,formation_matrix):
 		print '\n'
 		print '############## DETERMINE BEST FORMATION #################'
@@ -239,7 +333,7 @@ class Assignment1Predator(Predator):
 		# For each predator i
 		for i in range(0, len(formation_matrix)):
 			# Determine best position
-			closest_pos = self.getClosestFormationPosition(formation_matrix[i])
+			closest_pos = self.getClosestFormationPosition(formation_matrix, i)
 			print "Closest position for",i,":",closest_pos
 			# Check if position is vacant
 			if positions[closest_pos] == 0:
@@ -256,20 +350,28 @@ class Assignment1Predator(Predator):
 				return self.determineBestFormation( formation_matrix )
 		return positions;
 		
-	def getClosestFormationPosition(self,formation_vector):
+	def getClosestFormationPosition(self,formation_matrix, me):
+		my_formation_matrix = formation_matrix[me]
+		for vector_index in range(0, len(formation_matrix)):
+			if vector_index != me :
+				for index in range(0, len(formation_matrix[vector_index])):
+					if formation_matrix[vector_index][index] == 0:
+						my_formation_matrix[index] += 0.1
+
 		min_index = 0
-		min_value = 'inf'
-		for index in range(0,len(formation_vector)):
-			if formation_vector[index] < min_value:
+		min_value = float('inf')
+		for index in range(0,len(formation_matrix[me])):
+			if formation_matrix[me][index] < min_value:
 				min_index = index
-				min_value = formation_vector[index]
+				min_value = formation_matrix[me][index]
+
 		return min_index
 
 	def resolveConflict(self,formation_matrix, pred1, pred2, pos):
 		if( pred1 < pred2):
-			formation_matrix[pred2][pos] = 'inf'
+			formation_matrix[pred2][pos] = float('inf')
 		else:
-			formation_matrix[pred1][pos] = 'inf'
+			formation_matrix[pred1][pos] = float('inf')
 		return formation_matrix
 
 	def getClosestPreyVector(self,prey_matrix):
