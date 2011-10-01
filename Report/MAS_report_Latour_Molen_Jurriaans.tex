@@ -102,8 +102,10 @@ In a multi agent system it is necessary for each agent to rationally decide on w
 
 
 \section{Application}\label{application}
+In the pursuit domain it is possible to simply use rational independent agents. Various predators each find the closest prey and makes a move which lessens the distance to that prey. The closest prey can be chosen by using the prey with the smallest euclidean distance, but since the agents are only allowed to move orthogonally manhattan distance is a more logical choice. Another possibility is to use a path planning algorithm such as A* to find the actual distance to the prey. Selecting the right action is simply a case of taking the larger of the relative distances of both the x-axis and the y-axis.
+
 % Predators selecting prey
-In the case of the pursuit-domain coordination is very important. If there are multiple prey and predators needs to cooperatively hunt the same prey, it is necessary for each predator to select the same prey to hunt. With communication the predators could simply elect a leader to which they broadcast their closest prey and then the leader selects the prey to attack and communicates this back to the other predators.
+If multiple predators need to surround a prey in order to catch it, coordination becomes very important. If there are multiple prey and predators needs to cooperatively hunt the same prey, it is necessary for each predator to select the same prey to hunt. With communication the predators could simply elect a leader to which they broadcast their closest prey and then the leader selects the prey to attack and communicates this back to the other predators.
 
 However, if communication is not possible the predators are dependent of using their observations to select the same prey based on their independent observations. The first problem is to find the prey closest to all predators. Since the world is toroidal it is impossible to determine this without the knowledge of the size of the world as seen in table \ref{tab_disprob}. Predator 1 sees the prey to its left with a distance of 1 cell, while it sees predator 2 to the right with a distance of 3 cells. If predator 1 does not know the size of the world it will deduct that predator 2 has a distance of 4 cells to the prey. However, predator 2 is only 1 cell removed from the prey and deducts furthermore that predator 1 also has a distance to the prey of 4 cells.
 
@@ -133,7 +135,7 @@ Once a prey has been selected, the predators need to agree on which cell they sh
 \FORALL{$Dprey$} 
 \STATE $CrtDis=0$
 \FORALL{$Dpred$}
-\STATE $CrtDis += (Dprey+Dpred)\mod n$
+\STATE $CrtDis += -(Dpred-Dprey)\mod n$
 \ENDFOR
 \IF{$CrtDis<MinDis$}
 \STATE $MinDis=CrtDis$
@@ -161,13 +163,14 @@ Since predators can only move orthogonally the best distance to take is the manh
 Each predator uses the observation to create matrices that hold information about the distances of the predators to each prey. These are used to derive which prey is closest by using algorithm \ref{alg_hunt}. The distances of the predators to the prey that has the smallest average distance to the predators is then split into the distances to the four surrounding cells of the prey. This results in a 4 by 4 matrix in which the manhattan distance of each of the four predators to each of the four cells is contained. This matrix is then used to derive the best cell for each predator to go to. This is done iteratively because it is possible that two of the other predators want to attack the same cell so that one of them is forced to another cell which could be the same cell that the predator wanted to attack. For each predator the closest cell is calculated, if two predators have the same cell they want to attack the distance to that cell is set to infinite for the predator that was closest to that cell. The algorithm is then repeated so that the predator ignores that cell.
 
 \section{Experiments and results}\label{experiments}
-%\input{benchmark}
+\subsection{Rational Independent Agents}
+
+\subsection{Multi-Agent Coordination}
 
 \section{Conclusion}\label{conclusion}
 %\input{conclusion}
 
-%\section{Discussion}\label{discussion}
-%\input{discussion}
+\section{Discussion}\label{discussion}
 
 
 
