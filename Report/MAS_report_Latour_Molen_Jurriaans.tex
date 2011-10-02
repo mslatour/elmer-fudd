@@ -164,13 +164,18 @@ Each predator uses the observation to create matrices that hold information abou
 
 \section{Experiments and results}\label{experiments}
 \subsection{Rational Independent Agents}
+If there are two predators and one prey and the predators move randomly, than the average capture time after 10 episodes is $242.22$ cycles. If we use the observation of the prey we can easily increase this to an average of $9.63$ cycles after 100 episodes. This increase was to be expected since at each step the predators try to minimise the distance to the prey. When there are two prey the average cycles increases to $14.14$ after 100 episodes. 
+
 
 \subsection{Multi-Agent Coordination}
 
 \section{Conclusion}\label{conclusion}
 %\input{conclusion}
 
-\section{Discussion}\label{discussion}
+
+
+% Discussion
+A perhaps more effective method is to use a search algorithm such as A* using all possible joint actions as the set of moves, the smallest average manhattan distance to a prey, minus one for the cells around the prey, as the estimate and the goal state simply as the state in which four predators surround a prey. This would be computationally more expensive, but would result in the optimal path to be found by all predators.
 
 
 
