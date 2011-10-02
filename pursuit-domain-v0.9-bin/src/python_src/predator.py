@@ -482,8 +482,487 @@ class Assignment1Predator(Predator):
     	# TODO: is called when predator collided or penalized
 		pass
 
+
+# ROBRECHT CLASS
+class RobrechtPredator:
+
+    sock = None
+    huntprey = None
+    predators = []
+
+    # processes the incoming visualization messages from the server
+    def processVisualInformation( self, msg ):
+        
+        if string.find( msg, '(see)' ) == 0:
+            return
+        # strip the '(see ' and the ')'
+        msg = msg[6:-3]
+        observations = string.split(msg, ') (')
+        hunted = None
+        minDisToPrey = float('inf')
+
+        self.huntprey = None
+        self.predators = []
+
+        for o in observations:
+            (obj, x, y) = string.split(o, " ")
+            print obj + " seen at (" + x + ", " + y + ")"
+            # implementation should be done by students            
+            # TODO: process these relative x and y coordinates
+            if(obj=="prey"):
+              preyworldview = [(-int(x), -int(y))]
+              preyx = int(x)
+              preyy = int(y)
+              for preds in observations:
+                (obj2,predx,predy) = string.split(preds, " ")
+                if(obj2=="predator"):
+                  gridhalf = math.floor(gridsize/2)
+                  predx = int(predx)
+                  predy = int(predy)
+                  xdis = ((-(preyx-predx)+gridhalf)%gridsize)-gridhalf
+                  ydis = ((-(preyy-predy)+gridhalf)%gridsize)-gridhalf
+
+                  preyworldview.append((xdis, ydis))
+              print "Prey world view",  preyworldview
+
+              crtDisToPrey = 0
+              for (i,j) in preyworldview:
+                crtDisToPrey += abs(i)+abs(j)
+
+              if crtDisToPrey<minDisToPrey:
+                minDisToPrey = crtDisToPrey
+                hunted = preyworldview
+              print "Minimum distance prey", minDisToPrey, "Current distance prey", crtDisToPrey
+            else:
+              self.predators.append((int(x), int(y)))
+        self.huntprey = hunted
+
+    # determines the next movement command for this agent
+    def determineMovementCommand( self ):
+        print "View from prey",  self.huntprey
+        print "Other predators", self.predators
+
+        msg = "(move none)"
+        minx = float('inf')
+        miny = float('inf')
+        
+        (ownx, owny) = self.huntprey[0]
+        ownx *= -1
+        owny *= -1
+
+        # East, West, South, North
+        possiblesquares = [(ownx-1, owny), (ownx+1, owny), (ownx, owny-1), (ownx, owny+1)]
+        
+        for (tryx, tryy) in possiblesquares:
+          if(abs(tryx)+abs(tryy)<abs(minx)+abs(miny)):
+            for (x2,y2) in self.predators:
+              if(tryx != x2 and tryy != y2):
+                minx = tryx
+                miny = tryy
+        
+        possiblethreats = [(float('inf'), float('inf'))]
+
+        for (x2,y2) in self.predators:
+          if(abs(x2)+abs(y2)<3):
+            possiblesquares2 = [(ownx-x2-1, owny-y2), (ownx-x2+1, owny-y2), (ownx-x2, owny-y2-1), (ownx-x2, owny-y2+1)]
+            minx2 = float('inf')
+            miny2 = float('inf')
+            for (tryx2, tryy2) in possiblesquares2:
+              if(abs(tryx2)+abs(tryy2)<abs(minx2)+abs(miny2)):
+                for (x3,y3) in self.predators + [(-x2,-y2)]:
+                  if(tryx2 != x3 and tryy2 != y3):
+                    minx2 = tryx2
+                    miny2 = tryy2
+            if(  (abs(minx2) < abs(miny2)) and miny2<0):
+              newpred = (x2, y2-1)
+              msg2 = "(move south)"
+            elif((abs(minx2) < abs(miny2)) and miny2>0):
+              newpred = (x2, y2+1)
+              msg2 = "(move north)"
+            elif(minx2>0):
+              newpred = (x2+1, y2)
+              msg2 = "(move west)"
+            elif( minx2<0):
+              newpred = (x2-1, y2)
+              msg2 = "(move east)"
+            else:
+              newpred = (x2, y2)
+              msg2 = "(move none)"
+            print "Other predator as", x2,y2,msg2
+            possiblethreats.append(newpred)
+        
+        print "Min X and Min Y", minx,miny
+        print possiblethreats
+        if(  (abs(minx) < abs(miny)) and miny<0):
+          for (posx, posy) in possiblethreats:
+            if(posy == -1 and posx == 0):
+              msg = "(move none)"
+            else:
+              msg = "(move south)"
+        elif((abs(minx) < abs(miny)) and miny>0):
+          for (posx, posy) in possiblethreats:
+            if(posy == 1 and posx ==0):
+              msg = "(move none)"
+            else:
+              msg = "(move north)"
+        elif(minx<0):
+          for (posx, posy) in possiblethreats:
+            if(posx == 1 and posy==0):
+              msg = "(move none)"
+            else:
+              msg = "(move west)"
+        elif( minx>0):
+          for (posx, posy) in possiblethreats:
+            if(posx == -1 and posy==0):
+              msg = "(move none)"
+            else:
+              msg = "(move east)"
+        else:
+          msg = "(move none)"
+
+        surrounding = True
+        for (x2,y2) in self.huntprey[1:]:
+          if(abs(x2)+abs(y2)>1):
+            surrounding = False
+
+        if(surrounding):
+          if(minx>ownx and abs(miny)<2):
+            msg = "(move west)"
+          if(minx<ownx and abs(miny)<2):
+            msg = "(move east)"
+          if(miny>owny and abs(minx)<2):
+            msg = "(move north)"
+          if(miny<owny and abs(minx)<2):
+            msg = "(move south)"
+
+        return msg
+
+    # determine a communication message 
+    def determineCommunicationCommand( self ):
+        # TODO: Assignment 3
+        return ""
+
+    # process the incoming visualization messages from the server   
+    def processCommunicationInformation( self, str ):
+        # TODO: Assignment 3
+        pass
+
+    def processEpisodeEnded( self ):
+       # TODO: initialize used variables (if any)
+       pass
+       
+    def processCollision( self ):
+       # TODO: is called when predator collided or penalized
+       pass
+
+    def processPenalize( self ):
+       # TODO: is called when predator collided or penalized
+       pass
+
+    # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
+    def connect( self, host='', port=4001 ):
+        self.sock = socket( AF_INET, SOCK_DGRAM)                  
+        self.sock.bind( ( '', 0 ) )                               
+        self.sock.sendto( "(init predator)" , (host, port ) )       
+        pass
+  
+    def mainLoop( self ):
+        msg, addr = self.sock.recvfrom( 1024 )                    
+        self.sock.connect( addr )                                 
+        ret = 1
+        while ret:
+            msg = self.sock.recv( 1024 )                            
+            if string.find( msg, '(quit' ) == 0 :
+                # quit message
+                ret = 0                                       
+
+            elif string.find( msg, '(hear' ) == 0 :
+                # process audio
+                self.processCommunicationInformation( msg )
+
+            elif string.find( msg, '(see' ) == 0 :
+                # process visual
+                self.processVisualInformation( msg )
+
+                msg = self.determineCommunicationCommand( )
+                if len(msg) > 0:
+                    self.sock.send( msg )
+        
+            elif string.find( msg, '(send_action' ) == 0 :  
+                msg = self.determineMovementCommand( )
+                self.sock.send( msg )           
+
+            elif string.find( msg, '(referee episode_ended)' ) == 0:  
+                msg = self.processEpisodeEnded( )
+         
+            elif string.find( msg, '(referee collision)' ) == 0:  
+                msg = self.processCollision( )
+
+            elif string.find( msg, '(referee penalize)' ) == 0:  
+                msg = self.processPenalize( )
+                
+            else:
+                print "msg not understood " + msg
+        self.sock.close()                                         
+        pass
+ 
+
+# ROBRECHT2 CLASS
+class Robrecht2Predator:
+
+    sock = None
+    huntprey = None
+    predators = []
+
+    possiblecells = [1,2,3,4]
+    following = [0]
+
+    # processes the incoming visualization messages from the server
+    def processVisualInformation( self, msg ):
+        
+        if string.find( msg, '(see)' ) == 0:
+            return
+        # strip the '(see ' and the ')'
+        msg = msg[6:-3]
+        observations = string.split(msg, ') (')
+        hunted = None
+        minDisToPrey = float('inf')
+
+        self.huntprey = None
+        self.predators = []
+
+        for o in observations:
+            (obj, x, y) = string.split(o, " ")
+            print obj + " seen at (" + x + ", " + y + ")"
+            # implementation should be done by students            
+            # TODO: process these relative x and y coordinates
+            if(obj=="prey"):
+              preyworldview = [(-int(x), -int(y))]
+              preyx = int(x)
+              preyy = int(y)
+              for preds in observations:
+                (obj2,predx,predy) = string.split(preds, " ")
+                if(obj2=="predator"):
+                  gridhalf = math.floor(gridsize/2)
+                  predx = int(predx)
+                  predy = int(predy)
+                  xdis = ((-(preyx-predx)+gridhalf)%gridsize)-gridhalf
+                  ydis = ((-(preyy-predy)+gridhalf)%gridsize)-gridhalf
+
+                  preyworldview.append((xdis, ydis))
+              print "Prey world view",  preyworldview
+
+              crtDisToPrey = 0
+              for (i,j) in preyworldview:
+                crtDisToPrey += abs(i)+abs(j)
+
+              if crtDisToPrey<minDisToPrey:
+                minDisToPrey = crtDisToPrey
+                hunted = preyworldview
+              print "Minimum distance prey", minDisToPrey, "Current distance prey", crtDisToPrey
+            else:
+              self.predators.append((int(x), int(y)))
+        
+        self.huntprey = hunted
+        self.following =[0]
+        print "Hunted", hunted
+        if(self.following==[0]):
+          (x,y) = hunted[0]
+          print "X and Y", x,y
+          if(x==1 and y==0):
+            self.following = [1]
+            print "Start 1"
+          elif(x==-1 and y==0):
+            self.following = [2]
+            print "Start 2"
+          elif(x==0 and y==-1):
+            self.following = [3]
+            print "Start 3"
+          elif(x==0 and y==1):
+            self.following = [4]
+            print "Start 4"
+        print "Possible Squares", self.possiblecells
+        for (huntx, hunty) in hunted:
+          if(huntx==-1 and hunty==0):
+            if(self.possiblecells.count(2)>0):
+              self.possiblecells.remove(2)
+            else:
+              self.possiblecells.append(2)
+          if(huntx==1 and hunty==0):
+            if(self.possiblecells.count(1)>0):
+              self.possiblecells.remove(1)
+            else:
+              self.possiblecells.append(1)
+          if(huntx==0 and hunty==-1):
+            if(self.possiblecells.count(3)>0):
+              self.possiblecells.remove(3)
+            else:
+              self.possiblecells.append(3)
+          if(huntx==0 and hunty==0):
+            if(self.possiblecells.count(4)>0):
+              self.possiblecells.remove(4)
+            else:
+              self.possiblecells.append(4)
+              
+              # determines the next movement command for this agent
+    def determineMovementCommand( self ):
+        print "View from prey",  self.huntprey
+        print "Other predators", self.predators
+
+        msg = "(move none)"
+
+        (ownx, owny) = self.huntprey[0]
+        ownx *= -1
+        owny *= -1
+        
+        print "Following", self.following
+        print "Prey at", ownx, owny
+
+        
+
+        # Following behaviour to maintain position
+        if(self.following[0] == 1):
+          print "Following East"
+          if(ownx==2):
+            return "(move east)"
+          if(owny==1):
+            return "(move north)"
+          if(owny==-1):
+            return "(move south)"
+          return "(move none)"
+        elif(self.following[0] == 2):
+          print "Following West"
+          if(ownx==-2):
+            return "(move west)"
+          if(owny==1):
+            return "(move north)"
+          if(owny==-1):
+            return "(move south)"         
+          return "(move none)"
+        elif(self.following[0] == 3):
+          print "Following South"
+          if(owny==2):
+            return "(move north)"
+          if(ownx==1):
+            return "(move east)"
+          if(ownx==-1):
+            return "(move west)"        
+          return "(move none)"
+        elif(self.following[0] == 4):
+          print "Following North"
+          if(owny==-2):
+            return "(move south)"
+          if(ownx==1):
+            return "(move east)"
+          if(ownx==-1):
+            return "(move west)"
+          return "(move none)"
+
+        possiblesquares = []
+        # East, West, South, North
+        for i in self.possiblecells:
+          if(i == 1):
+            possiblesquares.append((ownx-1, owny))
+          elif(i == 2):
+            possiblesquares.append((ownx+1, owny))
+          elif(i == 3):
+            possiblesquares.append((ownx, owny-1))
+          elif(i == 4):
+            possiblesquares.append((ownx, owny+1))
+        minx = float('inf')
+        miny = float('inf')
+
+        for (tryx, tryy) in possiblesquares:
+          if(abs(tryx)+abs(tryy)<abs(minx)+abs(miny)):
+            minx = tryx
+            miny = tryy
+ 
+        if(abs(minx)<abs(miny)):
+          if(miny>0):
+            msg = "(move north)"
+          else:
+            msg = "(move south)"
+        else:
+          if(minx>0):
+            msg = "(move east)"
+          else:
+            msg = "(move west)"
+
+        return msg
+
+    # determine a communication message 
+    def determineCommunicationCommand( self ):
+        # TODO: Assignment 3
+        return ""
+
+    # process the incoming visualization messages from the server   
+    def processCommunicationInformation( self, str ):
+        # TODO: Assignment 3
+        pass
+
+    def processEpisodeEnded( self ):
+       # TODO: initialize used variables (if any)
+       pass
+       
+    def processCollision( self ):
+       # TODO: is called when predator collided or penalized
+       print "COLLISION"
+       self.following = [0]
+
+    def processPenalize( self ):
+       # TODO: is called when predator collided or penalized
+       pass
+
+    # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
+    def connect( self, host='', port=4001 ):
+        self.sock = socket( AF_INET, SOCK_DGRAM)                  
+        self.sock.bind( ( '', 0 ) )                               
+        self.sock.sendto( "(init predator)" , (host, port ) )       
+        pass
+  
+    def mainLoop( self ):
+        msg, addr = self.sock.recvfrom( 1024 )                    
+        self.sock.connect( addr )                                 
+        ret = 1
+        while ret:
+            msg = self.sock.recv( 1024 )                            
+            if string.find( msg, '(quit' ) == 0 :
+                # quit message
+                ret = 0                                       
+
+            elif string.find( msg, '(hear' ) == 0 :
+                # process audio
+                self.processCommunicationInformation( msg )
+
+            elif string.find( msg, '(see' ) == 0 :
+                # process visual
+                self.processVisualInformation( msg )
+
+                msg = self.determineCommunicationCommand( )
+                if len(msg) > 0:
+                    self.sock.send( msg )
+        
+            elif string.find( msg, '(send_action' ) == 0 :  
+                msg = self.determineMovementCommand( )
+                self.sock.send( msg )           
+
+            elif string.find( msg, '(referee episode_ended)' ) == 0:  
+                msg = self.processEpisodeEnded( )
+         
+            elif string.find( msg, '(referee collision)' ) == 0:  
+                msg = self.processCollision( )
+
+            elif string.find( msg, '(referee penalize)' ) == 0:  
+                msg = self.processPenalize( )
+                
+            else:
+                print "msg not understood " + msg
+        self.sock.close()                                         
+        pass
+ 
+
 if __name__ == "__main__":
 
-    predator = Assignment1Predator()
+    predator = Robrecht2Predator()
     predator.connect()
     predator.mainLoop()
