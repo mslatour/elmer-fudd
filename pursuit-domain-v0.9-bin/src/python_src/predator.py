@@ -212,9 +212,8 @@ class Assignment1Predator(Predator):
 
 		if msg == None:
 			msg = '(move none)'
-		# make recursive
 	
-		print msg;	
+		print msg;
 		return msg
 
 	def determineMovement(self, formation, dist2formation, prey_vector):
@@ -304,7 +303,7 @@ class Assignment1Predator(Predator):
 		free = None;
 			
 		for i in range(0, len(formation) ):
-			if ( prey_vector[1][formation[i]][0] > 1 ):
+			if ( prey_vector[1][formation[i]][0] > 2 ):
 				if( free == None ):
 					free = i
 				else:
@@ -952,7 +951,7 @@ class Robrecht2Predator:
  
 
 if __name__ == "__main__":
-
-    predator = Robrecht2Predator()
-    predator.connect()
-    predator.mainLoop()
+	predator = Assignment1Predator()
+	#predator = Robrecht2Predator()
+	predator.connect()
+	predator.mainLoop()
