@@ -189,7 +189,7 @@ If there are two predators and one prey and the predators move randomly, than th
 
 \subsection{Multi-Agent Coordination}
 Using 4 predators, which needs to completely surround 1 prey, and 2 prey, our implementation has an average capture time of 32.7 cycles per episode (based on 500 episodes) and a deviation of 41.0. Due to some (near) infinite loops in the system, some episode end in 100+ cycles. Therefore the deviation is quite large.\\
-In theory, the problem could also be solved with the use of A* (with an action set for each agent of  actions). However, when implemented the system got to a hold, meaning that solving the problem with A* is a too expensive task.
+In theory, the problem could also be solved with the use of A* (with an action set for each agent of  actions). This approach would result is the most optimal path for each agent, and therefore in one of the most optimal  solutions to catch the prey. However, when implemented the system got to a hold, meaning that solving the problem with A* is a too expensive task.
 
 
 \section{Conclusion}\label{conclusion}
@@ -207,9 +207,6 @@ Our implementation has a few shortcomings. The first is that it is possible to e
 	 &  & & & \\ \hline
 \end{tabular}
 \end{table}
-
-% Discussion
-A perhaps more effective method is to use a search algorithm such as A* using all possible joint actions as the set of moves, the smallest average manhattan distance to a prey, minus one for the cells around the prey, as the estimate and the goal state simply as the state in which four predators surround a prey. This would be computationally more expensive, but would result in the optimal path to be found by all predators.
 
 
 
