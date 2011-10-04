@@ -184,14 +184,30 @@ Each predator uses the observation to create matrices that hold information abou
 
 \section{Experiments and results}\label{experiments}
 \subsection{Rational Independent Agents}
-If there are two predators and one prey and the predators move randomly, than the average capture time after 10 episodes is $242.22$ cycles. If we use the observation of the prey we can easily increase this to an average of $9.63$ cycles after 100 episodes. This increase was to be expected since at each step the predators try to minimise the distance to the prey. When there are two prey the average cycles increases to $14.14$ after 100 episodes. 
+If there are two predators and one prey and the predators move randomly, than the average capture time after 10 episodes is $242.22$ cycles. If we use the observation of the prey we can easily increase this to an average of $9.24$ cycles after 500 episodes (and a deviation of 5.6). This increase was to be expected since at each step the predators try to minimize the distance to the prey. When there are two prey the average cycles increases to $14.14$ after 100 episodes. 
 
 
 \subsection{Multi-Agent Coordination}
+Using 4 predators, which needs to completely surround 1 prey, and 2 prey, our implementation has an average capture time of XX cycles per episode (based on XX episodes) and a deviation of XX. 
+
 
 \section{Conclusion}\label{conclusion}
 %\input{conclusion}
+Our implementation has a few short comings. The first is that it is possible to enter an infinite loop. When the world looks like (or mirrord/rotated):
 
+\begin{table}[h!tb]
+\centering
+	\caption{A 4x5 with a loop}
+\label{tab_loop}
+\begin{tabular}{|c|c|c|c|c|}\hline
+	 &  & & & \\ \hline
+	 & prey & pred & pred & \\ \hline
+	 & pred & pred & & \\ \hline
+	 &  & & & \\ \hline
+\end{tabular}
+\end{table}
+
+The sytem keeps looping. cause: unknown. Prob selection of cell
 
 
 % Discussion
