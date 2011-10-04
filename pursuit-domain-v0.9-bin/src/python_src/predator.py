@@ -209,11 +209,14 @@ class Assignment1Predator(Predator):
 			else:
 				goal.append((1,0))
 
-		print "Start:",start[me]
-		print "Goal:",goal[me]
+		print "Start:",start
+		print "Goal:",goal
 
-		moves = self.moveCollisionFree(start, goal)
-		print "Moves:", moves[me]
+		singleChoice = self.determineSingleChoicePrey(formation, prey_vector)
+		print "SingleChoice:", singleChoice
+
+		moves = self.moveCollisionFree(start, goal, singleChoice)
+		print "Moves:", moves
 
 		if start[me][0] - moves[me][0] > 0:
 			msg = "(move east)"
@@ -254,11 +257,11 @@ class Assignment1Predator(Predator):
 	#         from the predator to the prey from its start position
 	# Goal  - a list of tuples containing the distance 
 	#         from the predator to the prey from its goal position
-	def moveCollisionFree(self,start, goal):
+	def moveCollisionFree(self,start, goal, singleChoice):
 		idealmoves = []
 		# init step
 		for i in range(len(start)-1,-1,-1):
-			idealmoves.insert(0,self.idealSteps(start[i],goal[i]))
+			idealmoves.insert(0,self.idealSteps(start[i],goal[i], singleChoice))
 		# update step
 		return self.resolveConflicts(idealmoves)
 	
@@ -272,36 +275,65 @@ class Assignment1Predator(Predator):
 				return self.resolveConflicts(idealmoves)
 		return moves
 	
-	def idealSteps(self,start, goal):
+	def idealSteps(self,start, goal, singleChoice):
 		dx = start[0] - goal[0]
 		dy = start[1] - goal[1]
+			
 		if abs(dx) > abs(dy):
-			if dx > 0 and dy > 0:
-				return [(start[0]-1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
-			elif dx > 0 and dy < 0:
-				return [(start[0]-1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]+1, start[1])]
-			elif dx > 0 and dy == 0:
-				return [(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]-1),(start[0], start[1]-1), (start[0]+1, start[1])]
-			elif dx < 0 and dy > 0:
-				return [(start[0]+1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]-1, start[1])]
-			elif dx < 0 and dy < 0:
-				return [(start[0]+1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]-1, start[1])]
+			if dx > 0:
+				if singleChoice == 1:
+					if dy != 0:
+						return self.idealSteps((goal[0],start[1]), (goal[0], goal[1]), singleChoice)
+					else:		
+						return self.idealSteps((goal[0],start[1]), (start[0], goal[1]),singleChoice)
+				else:
+					if dy > 0:
+						return [(start[0]-1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
+					elif dy < 0:
+						return [(start[0]-1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]+1, start[1])]
+					else:
+						return [(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]-1),(start[0], start[1]-1), (start[0]+1, start[1])]
 			else:
-				return [(start[0]+1, start[1]),(start[0], start[1]),(start[0], start[1]+1),(start[0], start[1]-1), (start[0]-1, start[1])]
+				if singleChoice == 3:
+					if dy != 0:
+						return self.idealSteps((goal[0],start[1]), (goal[0], goal[1]),singleChoice)
+					else:		
+						return self.idealSteps((goal[0],start[1]), (start[0], goal[1]),singleChoice)
+				else:
+					if dy > 0:
+						return [(start[0]+1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]-1, start[1])]
+					elif dy < 0:
+						return [(start[0]+1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]-1, start[1])]
+					else:
+						return [(start[0]+1, start[1]),(start[0], start[1]),(start[0], start[1]+1),(start[0], start[1]-1), (start[0]-1, start[1])]	
 		else:
-			if dy > 0 and dx > 0:
-				return [(start[0], start[1]-1),(start[0]-1, start[1]),(start[0], start[1]),(start[0]+1, start[1]), (start[0], start[1]-1)]
-			elif dy > 0 and dx < 0:
-				return [(start[0], start[1]+1),(start[0]+1, start[1]),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
-			elif dy > 0 and dx == 0:
-				return [(start[0], start[1]-1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
-			elif dy < 0 and dx > 0:
-				return [(start[0], start[1]+1),(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
-			elif dy < 0 and dx < 0:
-				return [(start[0], start[1]+1),(start[0]+1, start[1]-1),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
-			elif dy < 0 and dx == 0:
-				return [(start[0], start[1]+1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
-			elif dx == dy == 0:
+			if dy > 0:
+				if singleChoice == 0:
+					if dx != 0:
+						return self.idealSteps((start[0],goal[1]), (goal[0], goal[1]),singleChoice)
+					else:		
+						return self.idealSteps((start[0],goal[1]), (goal[0], start[1]),singleChoice)
+				else:
+					if dx > 0:
+						return [(start[0], start[1]-1),(start[0]-1, start[1]),(start[0], start[1]),(start[0]+1, start[1]), (start[0], start[1]-1)]
+					elif dx < 0:
+						return [(start[0], start[1]-1),(start[0]+1, start[1]),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
+					else:
+						return [(start[0], start[1]-1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
+			elif dy < 0:
+				if singleChoice == 2:
+					if dx != 0:
+						return self.idealSteps((start[0],goal[1]), (goal[0], goal[1]),singleChoice)
+					else:		
+						return self.idealSteps((start[0],goal[1]), (goal[0], start[1]),singleChoice)
+				else:
+					if dx > 0:
+						return [(start[0], start[1]+1),(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
+					elif dx < 0:
+						return [(start[0], start[1]+1),(start[0]+1, start[1]-1),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
+					else:
+						return [(start[0], start[1]+1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
+			else:
 				return [(start[0], start[1]),(start[0]-1, start[1]),(start[0], start[1]-1),(start[0]+1, start[1]), (start[0], start[1]+1)]
 	
 	##########################
