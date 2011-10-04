@@ -194,7 +194,7 @@ In theory, the problem could also be solved with the use of A* (with an action s
 
 \section{Conclusion}\label{conclusion}
 %\input{conclusion}
-Our implementation has a few shortcomings. The first is that it is possible to enter an infinite loop. An example of a world which results in an infinite loop is shown in table \ref{tab_loop}. All mirrored and rotated versions of this world also results in an infinite loop. The exact reason why this happens is yet unknown, but it probably can be solved by adjusting the collision detection. Despite a collision detection, the systems sometimes encounters a collision. We also weren't able to trace the origin of the problem: prey selection, collision detection and cell-assignment all work in the way we thought it should work. 
+Our implementation has a few shortcomings. The first is that it is possible to enter an infinite loop. An example of a world which results in an infinite loop is shown in table \ref{tab_loop}. All mirrored and rotated versions of this world also results in an infinite loop. The exact reason why this happens is yet unknown, but it probably can be solved by adjusting the collision detection. Another solution to solve the loop would be to introduce a random move when a pursuit takes longer than $x$ cycles. Despite a collision detection, the systems sometimes encounters a collision. We also weren't able to trace the origin of the problem: prey selection, collision detection and cell-assignment all work in the way we thought it should work. 
 
 \begin{table}[h!tb]
 \centering
