@@ -1073,8 +1073,448 @@ class Robrecht2Predator:
         pass
  
 
+class HesselPredator(Predator):
+	prey_distance_matrix = []
+	GRIDSIZE = 15
+	HALFGRIDSIZE = math.floor(GRIDSIZE / 2.0)
+
+	def determineMovementCommand( self ):
+
+		closestPreyVector = self.getClosestPreyVectorXY(self.prey_distance_matrix)
+		print "Prey vector:", closestPreyVector
+		myIdx = closestPreyVector[0]
+		preyVector = closestPreyVector[1]
+		myStartPos = preyVector[myIdx]
+		goal = [(-1,0),(0,-1),(0,1),(1,0)]
+		
+		#determine if 3 predators have surrounded prey -> prey moves 1 dir	
+		choise = self.checkSingleChoice(preyVector)
+
+		myMove = None
+
+		if choise != None:
+		# if 3 predators have surrounded, give the furthest predator priority on his walk
+		# to do this:
+		# 	- rebuild preyVector & goal
+		#	- find index of myself
+		#	- determine moves of others, given the move of the furthest predator
+			idx = choise[0]
+			# rebuild preVector list
+			tmpStart = preyVector[idx]
+			preyVector.remove(tmpStart)
+			preyVector.append(tmpStart)
+			# get idx of myself
+			myIdx = preyVector.index(myStartPos)
+			# rebuild goal-list
+			tmpGoal = goal[idx]
+			goal.remove(tmpGoal)
+			goal.append(tmpGoal)
+			# get moves
+			movelist = self.moveCollisionFree(preyVector, goal, choise[1])
+			myMove = movelist[myIdx]
+		else:
+			movelist = self.moveCollisionFree(preyVector, goal, None)
+			myMove = movelist[myIdx]
+
+		# MOVE!
+		# 0 = none
+		# 1 = west
+		# 2 = north
+		# 3 = east
+		# 4 = south
+		msg = "(move none)"
+		if myMove == 1:
+			msg = "(move west)"
+		elif myMove == 2:
+			msg = "(move north)"
+		elif myMove == 3:
+			msg = "(move east)"
+		elif myMove == 4:
+			msg = "(move south)"
+		
+		return msg
+
+	def getClosestPreyVectorXY(self,prey_matrix):
+		closest_prey_vector = prey_matrix[0][1]
+
+		l = len(prey_matrix)
+		if (l > 1) and (prey_matrix[0][0] == prey_matrix[1][0]):
+			num_of_pred = len(prey_matrix[0][1])
+
+			min_dist = prey_matrix[0][0]
+			# calculate non-absolute x & y cumulative manhatten distance
+			min_cumX = prey_matrix[0][1][0][1]
+			min_cumY = prey_matrix[0][1][0][2]
+			for i in range(1, num_of_pred):
+				min_cumX += prey_matrix[0][1][i][1]	
+				min_cumY += prey_matrix[0][1][i][2]	
+
+			for i in range(1,l):
+				if prey_matrix[i][0] == min_dist:	
+					# calculate non-absoulte x & y cumulative manhatten distance
+					cumX = prey_matrix[i][1][0][1]
+					cumY = prey_matrix[i][1][0][2]
+					for j in range(1, num_of_pred):
+						cumX += prey_matrix[i][1][j][1]	
+						cumY += prey_matrix[i][1][j][2]
+
+					if (cumX < min_cumX) or ((cumX == min_cumX) and (cumY < min_cumY)):
+						closest_prey_vector = prey_matrix[i][1]
+						min_cumX = cumX
+						min_cumY = cumY
+				else:
+					break
+
+		#get rid of manhattendistance
+		preyVec = []
+		for i in range(0, len(closest_prey_vector)):	
+			preyVec.append(closest_prey_vector[i][1:])
+		
+		#keep track of myself
+		myself = preyVec[0]
+		#sort: smallest-x, smallest-y
+		preyVec.sort()
+		idx = preyVec.index(myself)
+
+		return (idx, preyVec)
+	
+	def checkTriangleFormation(self, v):
+		singlePredIdx = None
+		occupied = None
+		predBehindFormation = False
+
+		if ((2,0) in v) and ((1,1) in v) and ((1,-1) in v):
+			# -0-
+			# 0-^	(formation, 0=pred, ^=prey, -=empty)
+			# -0-
+			singlePred = list(set(v) - set([(2,0), (1,1), (1,-1)]))[0]
+			occupied = [1,1,0,1]
+			if singlePred[0] > 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((-2,0) in v) and ((-1,1) in v) and ((-1,-1) in v):
+			# -0-
+			# ^-0	(formation, 0=pred, ^=prey, -=empty)
+			# -0-		
+			singlePred = list(set(v) - set([(-2,0), (-1,1), (-1,-1)]))[0]
+			occupied = [0,1,1,1]
+			if singlePred[0] < 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((0,-2) in v) and ((1,-1) in v) and ((-1,-1) in v):
+			# -0-
+			# 0-0	(formation, 0=pred, ^=prey, -=empty)
+			# -^-
+			singlePred = list(set(v) - set([(0,-0), (1,-1), (-1,-1)]))[0]
+			occupied = [1,1,1,0]
+			if singlePred[1] < 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((0,2) in v) and ((1,1) in v) and ((-1,1) in v):
+			# -^-
+			# 0-0	(formation, 0=pred, ^=prey, -=empty)
+			# -0-
+			singlePred = list(set(v) - set([(0,2), (1,1), (-1,1)]))[0]
+			occupied = [1,0,1,1]
+			if singlePred[1] > 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((1,0) in v) and ((0,1) in v) and ((0,-1) in v):
+			# -0-
+			# 0^-	(formation, 0=pred, ^=prey, -=empty)
+			# -0-
+			singlePred = list(set(v) - set([(1,0), (0,1), (0,-1)]))[0]
+			occupied = [1,1,0,1]
+			if singlePred[0] > 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((-1,0) in v) and ((0,1) in v) and ((0,-1) in v):
+			# -0-
+			# -^0	(formation, 0=pred, ^=prey, -=empty)
+			# -0-
+			singlePred = list(set(v) - set([(-1,0), (0,1), (0,-1)]))[0]
+			occupied = [0,1,1,1]
+			if singlePred[0] < 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((0,1) in v) and ((1,0) in v) and ((-1,0) in v):
+			# ---
+			# 0^0	(formation, 0=pred, ^=prey, -=empty)
+			# -0-
+			singlePred = list(set(v) - set([(0,1), (1,0), (-1,0)]))[0]
+			occupied = [1,0,1,1]
+			if singlePred[1] > 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+		elif ((0,-1) in v) and ((1,0) in v) and ((-1,0) in v):
+			# -0-
+			# 0^0	(formation, 0=pred, ^=prey, -=empty)
+			# ---
+			singlePred = list(set(v) - set([(0,-1), (1,0), (-1,0)]))[0]
+			occupied = [1,1,1,0]
+			if singlePred[1] < 0:
+				predBehindFormation = True
+				singlePredIdx = v.index(singlePred)
+
+
+		return (singlePredIdx, occupied, predBehindFormation)
+
+
+
+	def checkSingleChoice(self, preyVector):
+		triangle = self.checkTriangleFormation(preyVector)
+		print "triangle: ", triangle
+		singlePred = triangle[0]
+		occupied = triangle[1]
+		behindFormation = triangle[2]
+		# Move Options:
+		# 0 = none
+		# 1 = west
+		# 2 = north
+		# 3 = east
+		# 4 = south
+		if behindFormation == True:
+			print "SINGLECHOISE!! - ", occupied
+			# There is only 1 option to go for the prey:
+			for i in range(0,4):
+				# get unoccupied position
+				if occupied[i] == 0:
+					print ">> i:", i
+					# get longest axe:
+					if abs(preyVector[singlePred][0]) > abs(preyVector[singlePred][0]):
+						if (i == 0) and (preyVector[singlePred][0] < 0): 
+							# west of prey is unoccupied
+							#   & predator is east of prey
+							#	-> predator move east
+							return [singlePrey, 3]
+						elif (i == 2) and (preyVector[singlePred][0] > 0):
+							# east of prey is unoccupied
+							#   & predator is west of prey 
+							# 	-> predator move west
+							return [singlePred, 1]
+						else:
+							# east is unoccupied & predator is east
+							# OR west is unoccupied & predator is west
+							#	-> do nothing
+							return None
+					elif abs(preyVector[singlePred][0]) < abs(preyVector[singlePred][0]):
+						if (i == 1) and (preyVector[singlePred][1] > 0): 
+							# north of prey is unoccupied
+							#   & predator is south of prey
+							#	-> predator move south
+							return [singlePred, 4]
+						elif (i == 3) and (preyVector[singlePred][1] < 0):
+							# south of prey is unoccupied
+							#   & predator is north of prey
+							#	-> predator move north
+							return [singlePred, 2]
+						else:
+							# north is unoccupied & predator is north
+							# OR south is unoccupied & predator is south
+							#	-> do nothing
+							return None
+					else:
+						#axes are equal...
+						if (i==0):
+							#move east
+							return [singlePred, 3]
+						elif (i==1):
+							#move south
+							return [singlePred, 4]
+						elif (i==2):
+							#move west
+							return [singlePred, 1]
+						elif (i==3):
+							#move north
+							return [singlePred, 2]
+		# there are multiple unoccupied spaces
+		return None
+
+	def moveCollisionFree(self, start, goal, singleChoise):
+		# movelist[IDX] = [moverank, moveTaken, newWalkDistance]
+		movelist = [[0, -1, None], [0, -1, None], [0, -1, None] ,[0, -1, None]]	
+
+		if singleChoise == None:
+			for idx in [3,2,1,0]:
+				movelist = self.determineMoves(start, goal, idx, movelist)
+		else:
+			movelist[-1] = [0, singleChoise, None]
+			for idx in [2,1,0]:
+				movelist = self.determineMoves(start, goal, idx, movelist)
+
+		# Move taken:
+		# 0 = none
+		# 1 = west
+		# 2 = north
+		# 3 = east
+		# 4 = south
+		moves = [movelist[0][1], movelist[1][1], movelist[2][1], movelist[3][1]]
+		return moves
+
+	# if a collision is found, try to find a non-collision move with a move of a higher rank (see doMove)
+	# if there is no collision (anymore), find the move of the next predator
+	def determineMoves(self, start, goal, idx, movelist):
+		movelist = self.doMove(start, goal, idx, movelist)
+		if self.checkCollision(idx, movelist) == True:
+			movelist[idx][0] += 1	#Increase move-rank
+			movelist = self.determineMoves(start, goal, idx, movelist)
+
+		print "Movelist: ", movelist
+		return movelist
+
+	# determine collision.
+	def checkCollision(self, idx, movelist):
+		pos = movelist[idx][2]
+		for i in range(idx+1, 4):
+			if movelist[i][2] == pos:
+				return True
+		return False
+	
+	# Rank of Move:
+	# move==0 -> move along longest axe towards prey
+	# move==1 -> move along shortest axe towards prey
+	# move==2 -> do not move
+	# move==3 -> move along shortest axe in opposite dir of prey
+	# move==4 -> move along longest axe in opposite dir of prey
+	def doMove(self, start, goal, idx, movelist):
+		dx = start[idx][0] - goal[idx][0]
+		dy = start[idx][1] - goal[idx][1]
+	
+		# do nothing when arrived at position, and it does not collide
+		if (dx == 0) and (dy == 0) and (movelist[idx][0] == 0):
+			movelist[idx][1] = 0
+			movelist[idx][2] = start[idx]
+		else:
+			if movelist[idx][0] == 0: # move along longest axe
+				if abs(dx) > abs(dy):
+					if dx > 0:
+						movelist[idx][1] = 3
+						movelist[idx][2] = self.calcNewWalk(start[idx], (-1,0))
+					else:
+						movelist[idx][1] = 1
+						movelist[idx][2] = self.calcNewWalk(start[idx], (1,0))
+				else:
+					if dy > 0:
+						movelist[idx][1] = 2
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,-1))
+					else:
+						movelist[idx][1] = 4
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,1))
+			elif movelist[idx][0] == 1: # move along shortest ax
+				if abs(dx) < abs(dy):
+					if dx > 0:
+						movelist[idx][1] = 3
+						movelist[idx][2] = self.calcNewWalk(start[idx], (-1,0))
+					else:
+						movelist[idx][1] = 1
+						movelist[idx][2] = self.calcNewWalk(start[idx], (1,0))
+				else:
+					if dy > 0:
+						movelist[idx][1] = 2
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,-1))
+					else:
+						movelist[idx][1] = 4
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,1))
+			elif movelist[idx][0] == 2: # Stand still
+				movelist[idx][1] = 0
+				movelist[idx][2] = start[idx]
+			elif movelist[idx][0] == 3: # move opposite dir along shortest axe
+				if abs(dx) < abs(dy):
+					if dx > 0:
+						movelist[idx][1] = 1
+						movelist[idx][2] = self.calcNewWalk(start[idx], (1,0))
+					else:
+						movelist[idx][1] = 3
+						movelist[idx][2] = self.calcNewWalk(start[idx], (-1,0))
+				else:
+					if dy > 0:
+						movelist[idx][1] = 4
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,1))
+					else:
+						movelist[idx][1] = 2
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,-1))
+			elif movelist[idx][0] == 4: # move opposite dir along longest axe
+				if abs(dx) > abs(dy):
+					if dx > 0:
+						movelist[idx][1] = 1
+						movelist[idx][2] = self.calcNewWalk(start[idx], (1,0))
+					else:
+						movelist[idx][1] = 3
+						movelist[idx][2] = self.calcNewWalk(start[idx], (-1,0))
+				else:
+					if dy > 0:
+						movelist[idx][1] = 4
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,1))
+					else:
+						movelist[idx][1] = 2
+						movelist[idx][2] = self.calcNewWalk(start[idx], (0,-1))
+		return movelist
+
+	def calcNewWalk(self, start, walked):
+		x = start[0] + walked[0]
+		if x > self.HALFGRIDSIZE:
+			x -= self.GRIDSIZE
+		elif x < -self.HALFGRIDSIZE:
+			x += self.GRIDSIZE
+		y = start[1] + walked[1]
+		if y > self.HALFGRIDSIZE:
+			y -= self.GRIDSIZE
+		elif y < -self.HALFGRIDSIZE:
+			y += self.GRIDSIZE
+		return (x,y)
+
+
+
+	def processVisualInformation(self, msg ): 
+		self.prey_distance_matrix = []
+		if string.find( msg, '(see)' ) == 0:
+			return
+		# strip the '(see ' and the ')'
+		msg = msg[6:-3]
+		observations = string.split(msg, ') (')
+		
+		# get predators and preys
+		preys = []
+		preds = []
+		for o in observations:
+			(obj, x, y) = string.split(o, " ")
+			print obj + " seen at (" + x + ", " + y + ")"
+			if( obj == "prey" ):
+				preys.append((int(x),int(y)))
+			if( obj == "predator" ):
+				preds.append((int(x),int(y)))
+		
+		for p in preys:
+			prey_vector = [abs(p[0])+abs(p[1]), [(abs(p[0])+abs(p[1]), p[0], p[1])]]
+			for pr in preds:
+				dx = p[0] - pr[0] 	
+				# transform dx into smallest distance
+				if dx > self.HALFGRIDSIZE:
+					dx -= self.GRIDSIZE
+				elif dx < -self.HALFGRIDSIZE:
+					dx += self.GRIDSIZE
+				dy = p[1] - pr[1]
+				# transform dy into smallest distance
+				if dy > self.HALFGRIDSIZE:
+					dy -= self.GRIDSIZE
+				elif dy < -self.HALFGRIDSIZE:
+					dy += self.GRIDSIZE
+				pred_tuple = (abs(dx)+abs(dy), dx, dy)
+				prey_vector[1].append(pred_tuple)
+				# increase cumulative distance
+				prey_vector[0] += pred_tuple[0]
+			self.prey_distance_matrix.append(prey_vector)
+
+		# sort (prey!) on absolute cumulative distance		
+		self.prey_distance_matrix.sort()
+
+	
+
+
+
 if __name__ == "__main__":
-	predator = Assignment1Predator()
+	#predator = Assignment1Predator()
 	#predator = Robrecht2Predator()
+	predator = HesselPredator()	
 	predator.connect()
 	predator.mainLoop()
