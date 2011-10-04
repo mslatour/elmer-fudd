@@ -188,12 +188,13 @@ If there are two predators and one prey and the predators move randomly, than th
 
 
 \subsection{Multi-Agent Coordination}
-Using 4 predators, which needs to completely surround 1 prey, and 2 prey, our implementation has an average capture time of XX cycles per episode (based on XX episodes) and a deviation of XX. 
+Using 4 predators, which needs to completely surround 1 prey, and 2 prey, our implementation has an average capture time of 32.7 cycles per episode (based on 500 episodes) and a deviation of 41.0. Due to some (near) infinite loops in the system, some episode end in 100+ cycles. Therefore the deviation is quite large.\\
+In theory, the problem could also be solved with the use of A* (with an action set for each agent of  actions). However, when implemented the system got to a hold, meaning that solving the problem with A* is a too expensive task.
 
 
 \section{Conclusion}\label{conclusion}
 %\input{conclusion}
-Our implementation has a few short comings. The first is that it is possible to enter an infinite loop. When the world looks like (or mirrord/rotated):
+Our implementation has a few shortcomings. The first is that it is possible to enter an infinite loop. An example of a world which results in an infinite loop is shown in table \ref{tab_loop}. All mirrored and rotated versions of this world also results in an infinite loop. The exact reason why this happens is yet unknown, but it probably can be solved by adjusting the collision detection. Despite a collision detection, the systems sometimes encounters a collision. We also weren't able to trace the origin of the problem: prey selection, collision detection and cell-assignment all work in the way we thought it should work. 
 
 \begin{table}[h!tb]
 \centering
@@ -206,9 +207,6 @@ Our implementation has a few short comings. The first is that it is possible to 
 	 &  & & & \\ \hline
 \end{tabular}
 \end{table}
-
-The sytem keeps looping. cause: unknown. Prob selection of cell
-
 
 % Discussion
 A perhaps more effective method is to use a search algorithm such as A* using all possible joint actions as the set of moves, the smallest average manhattan distance to a prey, minus one for the cells around the prey, as the estimate and the goal state simply as the state in which four predators surround a prey. This would be computationally more expensive, but would result in the optimal path to be found by all predators.
