@@ -195,26 +195,117 @@ class Assignment1Predator(Predator):
 
 		print 'My distance to the prey: ',prey_vector[1][me]
 
-		if formation[0] == me:
-			# Go to the north position
-			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]+1)
-		elif formation[1] == me:
-			# Go to the east position
-			dist2formation = (prey_vector[1][me][1]+1, prey_vector[1][me][2])
-		elif formation[2] == me:
-			# Go to the south position
-			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]-1)
+		start = []
+		goal = []
+
+		for i in range(0, len(formation)):
+			start.append((prey_vector[1][i][1],prey_vector[1][i][2]))
+			if formation[0] == i:
+				goal.append((0,-1))
+			elif formation[1] == i:
+				goal.append((-1,0))
+			elif formation[2] == i:
+				goal.append((0,1))
+			else:
+				goal.append((1,0))
+
+		print "Start:",start[me]
+		print "Goal:",goal[me]
+
+		moves = self.moveCollisionFree(start, goal)
+		print "Moves:", moves[me]
+
+		if start[me][0] - moves[me][0] > 0:
+			msg = "(move east)"
+		elif start[me][0] - moves[me][0] < 0:
+			msg = "(move west)"
+		elif start[me][1] - moves[me][1] > 0:
+			msg = "(move north)"
+		elif start[me][1] - moves[me][1] < 0:
+			msg = "(move south)"
 		else:
-			# Go to the west position
-			dist2formation = (prey_vector[1][me][1]-1, prey_vector[1][me][2])
+			msg = "(move none)"
+
+#		if formation[0] == me:
+#			# Go to the north position
+#			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]+1)
+#		elif formation[1] == me:
+#			# Go to the east position
+#			dist2formation = (prey_vector[1][me][1]+1, prey_vector[1][me][2])
+#		elif formation[2] == me:
+#			# Go to the south position
+#			dist2formation = (prey_vector[1][me][1], prey_vector[1][me][2]-1)
+#		else:
+#			# Go to the west position
+#			dist2formation = (prey_vector[1][me][1]-1, prey_vector[1][me][2])
 		
-		msg = self.determineMovement( formation, dist2formation, prey_vector)
+#		msg = self.determineMovement( formation, dist2formation, prey_vector)
 
 		if msg == None:
+			print "Message was not set, default to (move none)"
 			msg = '(move none)'
 	
 		print msg;
 		return msg
+
+	##########################
+
+	# Start - a list of tuples containing the distance 
+	#         from the predator to the prey from its start position
+	# Goal  - a list of tuples containing the distance 
+	#         from the predator to the prey from its goal position
+	def moveCollisionFree(self,start, goal):
+		idealmoves = []
+		# init step
+		for i in range(len(start)-1,-1,-1):
+			idealmoves.insert(0,self.idealSteps(start[i],goal[i]))
+		# update step
+		return self.resolveConflicts(idealmoves)
+	
+	def resolveConflicts(self,idealmoves):
+		moves = []
+		for i in range(len(idealmoves)-1,-1,-1):
+			if idealmoves[i][0] not in moves:
+				moves.insert(0,idealmoves[i][0])
+			else:
+				idealmoves[i].pop(0);
+				return self.resolveConflicts(idealmoves)
+		return moves
+	
+	def idealSteps(self,start, goal):
+		dx = start[0] - goal[0]
+		dy = start[1] - goal[1]
+		if abs(dx) > abs(dy):
+			if dx > 0 and dy > 0:
+				return [(start[0]-1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
+			elif dx > 0 and dy < 0:
+				return [(start[0]-1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]+1, start[1])]
+			elif dx > 0 and dy == 0:
+				return [(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]-1),(start[0], start[1]-1), (start[0]+1, start[1])]
+			elif dx < 0 and dy > 0:
+				return [(start[0]+1, start[1]),(start[0], start[1]+1),(start[0], start[1]),(start[0], start[1]+1), (start[0]-1, start[1])]
+			elif dx < 0 and dy < 0:
+				return [(start[0]+1, start[1]),(start[0], start[1]-1),(start[0], start[1]),(start[0], start[1]-1), (start[0]-1, start[1])]
+			else:
+				return [(start[0]+1, start[1]),(start[0], start[1]),(start[0], start[1]+1),(start[0], start[1]-1), (start[0]-1, start[1])]
+		else:
+			if dy > 0 and dx > 0:
+				return [(start[0], start[1]-1),(start[0]-1, start[1]),(start[0], start[1]),(start[0]+1, start[1]), (start[0], start[1]-1)]
+			elif dy > 0 and dx < 0:
+				return [(start[0], start[1]+1),(start[0]+1, start[1]),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
+			elif dy > 0 and dx == 0:
+				return [(start[0], start[1]-1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]+1)]
+			elif dy < 0 and dx > 0:
+				return [(start[0], start[1]+1),(start[0]-1, start[1]),(start[0], start[1]),(start[0], start[1]+1), (start[0]+1, start[1])]
+			elif dy < 0 and dx < 0:
+				return [(start[0], start[1]+1),(start[0]+1, start[1]-1),(start[0], start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
+			elif dy < 0 and dx == 0:
+				return [(start[0], start[1]+1),(start[0], start[1]),(start[0]+1, start[1]),(start[0]-1, start[1]), (start[0], start[1]-1)]
+			elif dx == dy == 0:
+				return [(start[0], start[1]),(start[0]-1, start[1]),(start[0], start[1]-1),(start[0]+1, start[1]), (start[0], start[1]+1)]
+	
+	##########################
+
 
 	def determineMovement(self, formation, dist2formation, prey_vector):
 		print 'Dist2formation',dist2formation
