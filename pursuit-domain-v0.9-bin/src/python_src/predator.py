@@ -141,7 +141,7 @@ class Ass2Predator:
 		predstate = ''
 		for o in observations:
 			(obj, x, y) = string.split(o, " ")
-			print obj + " seen at (" + x + ", " + y + ")"
+			#print obj + " seen at (" + x + ", " + y + ")"
 			if(obj=='prey'):
 				self.distance2prey = (abs(int(x)), abs(int(y)))
 				preystate += '%02d%02d' % (int(x)+7, int(y)+7)
@@ -155,13 +155,17 @@ class Ass2Predator:
     # determines the next movement command for this agent
 	def determineMovementCommand( self ):
 		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:
-			print '######################## QLEARN ##########################'
+#			print '######################## QLEARN ##########################'
 			self.qlearn = True
 
 		if not self.qlearn:
 			msg = self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
 		else:
-			self.updateQValues(-1)
+			if self.distance2prey[0]+self.distance2prey[1] > 9:
+				self.updateQValues(-2)
+			else:
+				self.updateQValues(-1)
+
 			if random.random() < self.epsilon:
 				rand = random.randint(0, 4)
 				if(rand == 0):
@@ -334,10 +338,10 @@ class Ass2Predator:
 		self.updateQValues(0)
 	
 	def processCollision( self ):
-		pass
+		self.updateQValues(-20)
 	
 	def processPenalize( self ):
-		pass
+		self.updateQValues(-10)
 
     # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
 	def connect( self, host='', port=4001 ):
