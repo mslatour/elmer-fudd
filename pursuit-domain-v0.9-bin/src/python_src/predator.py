@@ -171,36 +171,56 @@ class Ass2Predator:
 			elif(rand == 4):
 				msg = "(move none)"
 		else:
-			self.updateQValues(len(self.crtstate)-1)
-			possible_states = self.getAllPossibleStates()
-			new_state = self.selectBestPossibleState(possible_states)
-			new_x = int(new_state[0]+new_state[1])
-			new_y = int(new_state[2]+new_state[3])
-			old_x = self.distance2prey[0]
-			old_y = self.distance2prey[1]
-			if new_x > old_x:
-				msg = "(move east)"
-			elif new_x < old_x:
-				msg = "(move west)"
-			elif new_y > old_y:
-				msg = "(move north)"
-			elif new_y < old_y:
-				msg = "(move south)"
-			else:
-				msg = "(move none)"
+			self.updateQValues(len(self.crtstate)-1, -1)
+			if random.random() < self.epsilon:
+				rand = random.randint(0, 4)
+				if(rand == 0):
+					msg = "(move south)"
+				elif(rand == 1):
+					msg = "(move north)"
+				elif(rand == 2):
+					msg = "(move west)"
+				elif(rand == 3):
+					msg = "(move east)"
+				elif(rand == 4):
+					msg = "(move none)"
+			else:				
+				possible_states = self.getAllPossibleStates()
+				new_state = self.selectBestPossibleState(possible_states)
+				new_x = int(new_state[0]+new_state[1])
+				new_y = int(new_state[2]+new_state[3])
+				old_x = self.distance2prey[0]
+				old_y = self.distance2prey[1]
+				if new_x > old_x:
+					msg = "(move east)"
+				elif new_x < old_x:
+					msg = "(move west)"
+				elif new_y > old_y:
+					msg = "(move north)"
+				elif new_y < old_y:
+					msg = "(move south)"
+				else:
+					msg = "(move none)"
         return msg
 
 	# Update Q value of previous states 
-	def updateQValues( self, state_index):
+	def updateQValues( self, state_index, reward):
 		if state_index > 0:
-			r = -1 # reward
-			Q[self.crtstate[state_index-1]] = (1-self.l)*Q.get(self.crtstate[state_index-1])+self.l*(r+self.gamma*V.get(self.crtstate[state_index]))
+			Q[self.crtstate[state_index-1]] = ( (1-self.l)*Q.get(self.crtstate[state_index-1])
+				+ self.l*(reward+self.gamma*V.get(self.crtstate[state_index])) )
 			self.updateQValues(state_index-1)
 		else:
 			pass
 
 	def selectBestPossibleState( self, possible_states):
-		pass
+		max_states = []
+		max_q = float('-inf')
+		for state in possible_states:
+			if Q[state] == max_q:
+				max_states.append(state)
+			elif Q[state] > max_q:
+				max_states = [state]
+		return max_states[random.randint(0, length(max_states)-1)]
 
 	def	getAllPossibleStates( self ):
 		next_prey_coord = self.generateNextCoordinateStates( self.distance2prey )
@@ -237,13 +257,13 @@ class Ass2Predator:
         pass
 
     def processEpisodeEnded( self ):
-       pass
+		self.updateQValues(len(self.crtstate)-1, 0)
        
     def processCollision( self ):
-       pass
+		pass
 
     def processPenalize( self ):
-       pass
+		pass
 
     # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
     def connect( self, host='', port=4001 ):
