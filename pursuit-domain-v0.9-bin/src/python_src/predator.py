@@ -117,9 +117,9 @@ class Predator:
 class Ass2Predator:
 	sock = None
 	
-	l = 0.9
-	gamma = 1
-	epsilon = 0.1
+	l = 0.99
+	gamma = 0.5
+	epsilon = 0.01
 	Q = {}
 	crtstate = []
 	
@@ -159,7 +159,7 @@ class Ass2Predator:
 			self.qlearn = True
 
 		if not self.qlearn:
-			msg = self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
+			return self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
 		else:
 			if self.distance2prey[0]+self.distance2prey[1] > 9:
 				self.updateQValues(-2)
@@ -185,29 +185,21 @@ class Ass2Predator:
 				new_y = int(new_state[2]+new_state[3])-7
 				old_x = self.preycoordinates[0]
 				old_y = self.preycoordinates[1]
-				if abs(new_x) > abs(old_x):
-					if new_x > 0:
-						msg = "(move east)"
-					else:
-						msg = "(move west)"
-				elif abs(new_x) < abs(old_x):
-					if new_x > 0:
-						msg = "(move west)"
-					else:
-						msg = "(move east)"
-				elif abs(new_y) > abs(old_y):
-					if new_y > 0:
-						msg = "(move north)"
-					else:
-						msg = "(move south)"
-				elif abs(new_y) < abs(old_y):
-					if new_y > 0:
-						msg = "(move south)"
-					else:
-						msg = "(move north)"
-				else:
-					msg = "(move none)"
-		return msg
+                if new_x !=  old_x:
+                  tmp_x = old_x - new_x
+                  if tmp_x == -1: 
+                    msg = "(move west)"
+                  else:
+                    msg = "(move east)"
+                elif new_y != old_y:
+                  tmp_y = old_y - new_y
+                  if tmp_y == -1:
+                    msg = "(move south)"
+                  else:
+                    msg = "(move north)"
+                else:
+                  msg = "(move none)"
+            return msg
 
 	# move, when Qlearning is not yet activated	
 	def movepreQ(self, myself, mypred):
@@ -350,10 +342,10 @@ class Ass2Predator:
 		self.updateQValues(0)
 	
 	def processCollision( self ):
-		self.updateQValues(-20)
+		self.updateQValues(-1000)
 	
 	def processPenalize( self ):
-		self.updateQValues(-10)
+		self.updateQValues(-20)
 
     # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
 	def connect( self, host='', port=4001 ):
