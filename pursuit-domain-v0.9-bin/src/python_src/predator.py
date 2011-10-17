@@ -220,13 +220,13 @@ class Ass2Predator:
 
 	# Given a coordinate, generate all possible next coordinate states
 	def generateNextCoordinateStates( self, coordinate ):
-		result = []
-		result.append( '%02d%02d' % (coordinate[0],coordinate[1])
-		result.append( '%02d%02d' % (coordinate[0],(coordinate[1]+1) % 15)
-		result.append( '%02d%02d' % (coordinate[0],(coordinate[1]-1) % 15)
-		result.append( '%02d%02d' % ((coordinate[0]+1) % 15,coordinate[1])
-		result.append( '%02d%02d' % ((coordinate[0]-1) % 15,coordinate[1])
-		return result
+		return ([
+			'%02d%02d' % (coordinate[0],coordinate[1]),
+			'%02d%02d' % (coordinate[0],(coordinate[1]+1) % 15),
+			'%02d%02d' % (coordinate[0],(coordinate[1]-1) % 15),
+			'%02d%02d' % ((coordinate[0]+1) % 15,coordinate[1]),
+			'%02d%02d' % ((coordinate[0]-1) % 15,coordinate[1])
+		])
 
     # determine a communication message 
     def determineCommunicationCommand( self ):
@@ -295,6 +295,6 @@ class Ass2Predator:
 
 
 if __name__ == "__main__":
-	predator = Ass1Predator()	
+	predator = Ass2Predator()	
 	predator.connect()
 	predator.mainLoop()
