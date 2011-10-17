@@ -114,13 +114,19 @@ class Predator:
 
 
 # MAIN CLASS
-class Ass1Predator:
+class Ass2Predator:
 
     sock = None
 
+	l = 0.9
+	gamma = 1
+	epsilon = 0.1
     Q = {}
     V = {}
-    crtstate = [] 
+    crtstate = []
+
+	distance2prey = (28,28)
+	distance2predator = (28,28)
 
     # processes the incoming visualization messages from the server
     def processVisualInformation( self, msg ):
@@ -136,11 +142,12 @@ class Ass1Predator:
             (obj, x, y) = string.split(o, " ")
             print obj + " seen at (" + x + ", " + y + ")"
             if(obj=='prey'):
-              preystate += '%02d%02d' % (int(x)+7,int(y)+7)
+			  self.distance2prey = (int(x)+7, int(y)+7)
+              preystate += '%02d%02d' % distance2prey
             else:
               predstate += '%02d%02d' % (int(x)+7,int(y)+7)
 
-            # implementation should be done by students            
+            # implementation should be done by students
             # TODO: process these relative x and y coordinates
             state = preystate+predstate
             self.crtstate.append(state)
@@ -148,20 +155,78 @@ class Ass1Predator:
 
     # determines the next movement command for this agent
     def determineMovementCommand( self ):
-
-        rand = random.randint(0, 4)                   
-        if(rand == 0):
-          msg = "(move south)"
-        elif(rand == 1):
-          msg = "(move north)"
-        elif(rand == 2):
-          msg = "(move west)"
-        elif(rand == 3):
-          msg = "(move east)"
-        elif(rand == 4):
-          msg = "(move none)"
-
+		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:	
+			self.qlearn = True
+			
+		if not self.qlearn
+			rand = random.randint(0, 4)
+			if(rand == 0):
+				msg = "(move south)"
+			elif(rand == 1):
+				msg = "(move north)"
+			elif(rand == 2):
+				msg = "(move west)"
+			elif(rand == 3):
+				msg = "(move east)"
+			elif(rand == 4):
+				msg = "(move none)"
+		else:
+			self.updateQValues(len(self.crtstate)-1)
+			possible_states = self.getAllPossibleStates()
+			new_state = self.selectBestPossibleState(possible_states)
+			new_x = int(new_state[0]+new_state[1])
+			new_y = int(new_state[2]+new_state[3])
+			old_x = self.distance2prey[0]
+			old_y = self.distance2prey[1]
+			if new_x > old_x:
+				msg = "(move east)"
+			elif new_x < old_x:
+				msg = "(move west)"
+			elif new_y > old_y:
+				msg = "(move north)"
+			elif new_y < old_y:
+				msg = "(move south)"
+			else:
+				msg = "(move none)"
         return msg
+
+	# Update Q value of previous states 
+	def updateQValues( self, state_index):
+		if state_index > 0:
+			r = -1 # reward
+			Q[self.crtstate[state_index-1]] = (1-self.l)*Q.get(self.crtstate[state_index-1])+self.l*(r+self.gamma*V.get(self.crtstate[state_index]))
+			self.updateQValues(state_index-1)
+		else:
+			pass
+
+	def selectBestPossibleState( self, possible_states):
+		pass
+
+	def	getAllPossibleStates( self ):
+		next_prey_coord = self.generateNextCoordinateStates( self.distance2prey )
+		next_predator_coord = self.generateNextCoordinates( self.distance2predator )
+		return self.permutate( next_prey_coord, next_predator_coord )
+
+	# Return all combinations of list1 and list2
+	def permutate( self, list1, list2 ):
+		if len(list1) > 0:
+			elem1 = list1.pop()
+			result = self.permutate(list1, list2)
+			for elem2 in list2:
+				result.append(elem1+elem2)
+			return result
+		else:
+			return []
+
+	# Given a coordinate, generate all possible next coordinate states
+	def generateNextCoordinateStates( self, coordinate ):
+		result = []
+		result.append( '%02d%02d' % (coordinate[0],coordinate[1])
+		result.append( '%02d%02d' % (coordinate[0],(coordinate[1]+1) % 15)
+		result.append( '%02d%02d' % (coordinate[0],(coordinate[1]-1) % 15)
+		result.append( '%02d%02d' % ((coordinate[0]+1) % 15,coordinate[1])
+		result.append( '%02d%02d' % ((coordinate[0]-1) % 15,coordinate[1])
+		return result
 
     # determine a communication message 
     def determineCommunicationCommand( self ):
