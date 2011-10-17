@@ -115,50 +115,46 @@ class Predator:
 
 # MAIN CLASS
 class Ass2Predator:
-
-    sock = None
-
+	sock = None
+	
 	l = 0.9
 	gamma = 1
 	epsilon = 0.1
-    Q = {}
-    V = {}
-    crtstate = []
+	Q = {}
+	crtstate = []
+	
+	qlearn = False
 
 	distance2prey = (28,28)
 	distance2predator = (28,28)
 
     # processes the incoming visualization messages from the server
-    def processVisualInformation( self, msg ):
-        
-        if string.find( msg, '(see)' ) == 0:
-            return
-        # strip the '(see ' and the ')'
-        msg = msg[6:-3]
-        observations = string.split(msg, ') (')
-        preystate = ''
-        predstate = ''
-        for o in observations:
-            (obj, x, y) = string.split(o, " ")
-            print obj + " seen at (" + x + ", " + y + ")"
-            if(obj=='prey'):
-			  self.distance2prey = (int(x)+7, int(y)+7)
-              preystate += '%02d%02d' % distance2prey
-            else:
-              predstate += '%02d%02d' % (int(x)+7,int(y)+7)
-
-            # implementation should be done by students
-            # TODO: process these relative x and y coordinates
-            state = preystate+predstate
-            self.crtstate.append(state)
-
-
+	def processVisualInformation( self, msg ):
+		if string.find( msg, '(see)' ) == 0:
+			return
+		# strip the '(see ' and the ')'
+		msg = msg[6:-3]
+		observations = string.split(msg, ') (')
+		preystate = ''
+		predstate = ''
+		for o in observations:
+			(obj, x, y) = string.split(o, " ")
+			print obj + " seen at (" + x + ", " + y + ")"
+			if(obj=='prey'):
+				self.distance2prey = (abs(int(x)), abs(int(y)))
+				preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+			else:
+				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
+		state = preystate+predstate
+		self.crtstate.append(state)
+		
     # determines the next movement command for this agent
-    def determineMovementCommand( self ):
-		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:	
+	def determineMovementCommand( self ):
+		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:
+			print '######################## QLEARN ##########################'
 			self.qlearn = True
-			
-		if not self.qlearn
+
+		if not self.qlearn:
 			rand = random.randint(0, 4)
 			if(rand == 0):
 				msg = "(move south)"
@@ -171,7 +167,7 @@ class Ass2Predator:
 			elif(rand == 4):
 				msg = "(move none)"
 		else:
-			self.updateQValues(len(self.crtstate)-1, -1)
+			self.updateQValues(-1)
 			if random.random() < self.epsilon:
 				rand = random.randint(0, 4)
 				if(rand == 0):
@@ -201,30 +197,31 @@ class Ass2Predator:
 					msg = "(move south)"
 				else:
 					msg = "(move none)"
-        return msg
+		return msg
 
 	# Update Q value of previous states 
-	def updateQValues( self, state_index, reward):
-		if state_index > 0:
-			Q[self.crtstate[state_index-1]] = ( (1-self.l)*Q.get(self.crtstate[state_index-1])
-				+ self.l*(reward+self.gamma*V.get(self.crtstate[state_index])) )
-			self.updateQValues(state_index-1)
-		else:
-			pass
+	def updateQValues( self, reward):
+		for state_index in range(len(self.crtstate), 1,-1):
+			self.Q[self.crtstate[state_index-1]] = ( (1-self.l)*self.Q.get(self.crtstate[state_index-1],0)
+				+ self.l*(reward+self.gamma*self.Q.get(self.crtstate[-1],0)) )
 
 	def selectBestPossibleState( self, possible_states):
 		max_states = []
 		max_q = float('-inf')
 		for state in possible_states:
-			if Q[state] == max_q:
+			if self.Q.get(state,0) == max_q:
 				max_states.append(state)
-			elif Q[state] > max_q:
+			elif self.Q.get(state,0) > max_q:
 				max_states = [state]
-		return max_states[random.randint(0, length(max_states)-1)]
+		return max_states[random.randint(0, len(max_states)-1)]
 
 	def	getAllPossibleStates( self ):
-		next_prey_coord = self.generateNextCoordinateStates( self.distance2prey )
-		next_predator_coord = self.generateNextCoordinates( self.distance2predator )
+		next_prey_coord = ( self.generateNextCoordinateStates( 
+			( int(self.crtstate[-1][0:2]), int(self.crtstate[-1][2:4]) ) 
+		))
+		next_predator_coord = ( self.generateNextCoordinateStates(
+			( int(self.crtstate[-1][4:6]), int(self.crtstate[-1][6:8]) )
+		)) 
 		return self.permutate( next_prey_coord, next_predator_coord )
 
 	# Return all combinations of list1 and list2
@@ -248,69 +245,67 @@ class Ass2Predator:
 			'%02d%02d' % ((coordinate[0]-1) % 15,coordinate[1])
 		])
 
-    # determine a communication message 
-    def determineCommunicationCommand( self ):
-        return ""
+	# determine a communication message 
+	def determineCommunicationCommand( self ):
+		return ""
 
-    # process the incoming visualization messages from the server   
-    def processCommunicationInformation( self, str ):
-        pass
-
-    def processEpisodeEnded( self ):
-		self.updateQValues(len(self.crtstate)-1, 0)
-       
-    def processCollision( self ):
+	# process the incoming visualization messages from the server   
+	def processCommunicationInformation( self, str ):
 		pass
 
-    def processPenalize( self ):
+	def processEpisodeEnded( self ):
+		self.updateQValues(0)
+	
+	def processCollision( self ):
+		pass
+	
+	def processPenalize( self ):
 		pass
 
     # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
-    def connect( self, host='', port=4001 ):
-        self.sock = socket( AF_INET, SOCK_DGRAM)                  
-        self.sock.bind( ( '', 0 ) )                               
-        self.sock.sendto( "(init predator)" , (host, port ) )       
-        pass
+	def connect( self, host='', port=4001 ):
+		self.sock = socket( AF_INET, SOCK_DGRAM)                  
+		self.sock.bind( ( '', 0 ) )                               
+		self.sock.sendto( "(init predator)" , (host, port ) )       
+		pass
   
-    def mainLoop( self ):
-        msg, addr = self.sock.recvfrom( 1024 )                    
-        self.sock.connect( addr )                                 
-        ret = 1
-        while ret:
-            msg = self.sock.recv( 1024 )                            
-            if string.find( msg, '(quit' ) == 0 :
+	def mainLoop( self ):
+		msg, addr = self.sock.recvfrom( 1024 )                    
+		self.sock.connect( addr )                                 
+		ret = 1
+		while ret:
+			msg = self.sock.recv( 1024 )                            
+			if string.find( msg, '(quit' ) == 0 :
                 # quit message
-                ret = 0                                       
-
-            elif string.find( msg, '(hear' ) == 0 :
+				ret = 0                                       
+            
+			elif string.find( msg, '(hear' ) == 0 :
                 # process audio
-                self.processCommunicationInformation( msg )
-
-            elif string.find( msg, '(see' ) == 0 :
+				self.processCommunicationInformation( msg )
+            
+			elif string.find( msg, '(see' ) == 0 :
                 # process visual
-                self.processVisualInformation( msg )
-
-                msg = self.determineCommunicationCommand( )
-                if len(msg) > 0:
-                    self.sock.send( msg )
+				self.processVisualInformation( msg )
+				msg = self.determineCommunicationCommand( )
+				if len(msg) > 0:
+					self.sock.send( msg )
         
-            elif string.find( msg, '(send_action' ) == 0 :  
-                msg = self.determineMovementCommand( )
-                self.sock.send( msg )           
-
-            elif string.find( msg, '(referee episode_ended)' ) == 0:  
-                msg = self.processEpisodeEnded( )
+			elif string.find( msg, '(send_action' ) == 0 :  
+				msg = self.determineMovementCommand( )
+				self.sock.send( msg )           
+            
+			elif string.find( msg, '(referee episode_ended)' ) == 0:  
+				msg = self.processEpisodeEnded( )
          
-            elif string.find( msg, '(referee collision)' ) == 0:  
-                msg = self.processCollision( )
+			elif string.find( msg, '(referee collision)' ) == 0:  
+				msg = self.processCollision( )
 
-            elif string.find( msg, '(referee penalize)' ) == 0:  
-                msg = self.processPenalize( )
+			elif string.find( msg, '(referee penalize)' ) == 0:  
+				msg = self.processPenalize( )
                 
-            else:
-                print "msg not understood " + msg
-        self.sock.close()                                         
-        pass
+			else:
+				print "msg not understood " + msg
+		self.sock.close()                                         
 
 
 
