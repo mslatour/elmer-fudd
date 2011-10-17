@@ -127,6 +127,8 @@ class Ass2Predator:
 
 	distance2prey = (28,28)
 	distance2predator = (28,28)
+	preycoordinates = (0,0)
+	predatorcoordinates = (0,0)
 
     # processes the incoming visualization messages from the server
 	def processVisualInformation( self, msg ):
@@ -143,8 +145,10 @@ class Ass2Predator:
 			if(obj=='prey'):
 				self.distance2prey = (abs(int(x)), abs(int(y)))
 				preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+				self.preycoordinates = (int(x), int(y))
 			else:
 				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
+				self.predatorcoordinates = (int(x), int(y))
 		state = preystate+predstate
 		self.crtstate.append(state)
 		
@@ -155,17 +159,7 @@ class Ass2Predator:
 			self.qlearn = True
 
 		if not self.qlearn:
-			rand = random.randint(0, 4)
-			if(rand == 0):
-				msg = "(move south)"
-			elif(rand == 1):
-				msg = "(move north)"
-			elif(rand == 2):
-				msg = "(move west)"
-			elif(rand == 3):
-				msg = "(move east)"
-			elif(rand == 4):
-				msg = "(move none)"
+			msg = self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
 		else:
 			self.updateQValues(-1)
 			if random.random() < self.epsilon:
@@ -198,6 +192,89 @@ class Ass2Predator:
 				else:
 					msg = "(move none)"
 		return msg
+
+	# move, when Qlearning is not yet activated	
+	def movepreQ(self, myself, mypred):
+		# determine collision-free move.
+		# returns 'msg' which is a string describing the move 
+
+		# create preferred-move list
+		# the lower the index, the more preferred the move
+		# moves = [(dPred_Dist1, move1), (dPred_Dist2, move2), (dPred_Dist3, move3) ...]
+		# 	--> dPred_Dist = absolute total distance of predator to moving predator, after move
+		#	--> move = move taken (msg!)
+
+		moves = []	
+		if abs(myself[0]) > abs(myself[1]):
+			# x = larger!
+			if myself[0] > 0:
+				moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))		#right
+				if myself[1] > 0:		
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+				else:
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+			else:
+				moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))		#left
+				if myself[1] > 0:		
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+				else: 
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+		else:
+			# y is larger!
+			if myself[1] > 0:
+				moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))		#up
+				if myself[0] > 0:
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+				else:
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+			else:		
+				moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))		#down	
+				if myself[0] > 0:	
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+				else:
+					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
+					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
+					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
+	
+		# take move which is most preferred, but does avoid collision.
+		for i in moves:
+			if i[0] > 4:		
+				return i[1]
+
+		# if there is no move possible, move away from predator
+		# (can occure after initialization)
+		if abs(mypred[0]) > abs(mypred[1]):
+			# move along x-dir
+			if mypred[0] > 0:
+				# predator is right, --> move left
+				return "move west"
+			else:
+				# predator is left, --> move right
+				return "move east"
+		else:
+			# move along y-dir
+			if mypred[1] > 0:
+				# predator is up, --> move down
+				return "move south"
+			else:
+				# predator is down, --> move up
+				return "move north"
+
+		return "move none"
 
 	# Update Q value of previous states 
 	def updateQValues( self, reward):
