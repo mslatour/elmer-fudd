@@ -28,17 +28,17 @@ predator="python predator.py"
 prey="${pursuit_dir}/prey"
 
 ${pursuit} -conf ${pursuit_conf} &    # start the server (no visualization yet)
-sleep 1
-${predator}   &                       # start clients, only output info pred. 1
-sleep 1
+sleep 0.1
+${predator}  &                       # start clients, only output info pred. 1
+sleep 0.1
 ${predator} > /dev/null & 
-sleep 1
-${predator} > /dev/null & 
-sleep 1
-${predator} > /dev/null & 
-sleep 1
+#sleep 0.1
+#${predator} > /dev/null & 
+#sleep 0.1
+#${predator} > /dev/null & 
+#sleep 0.1
 ${prey}     > /dev/null & 
-#sleep 1
+#sleep 0.1
 #${prey}     > /dev/null & 
 
 ${monitor} -conf ${monitor_conf}       # start visualization
