@@ -181,18 +181,30 @@ class Ass2Predator:
 			else:				
 				possible_states = self.getAllPossibleStates()
 				new_state = self.selectBestPossibleState(possible_states)
-				new_x = int(new_state[0]+new_state[1])
-				new_y = int(new_state[2]+new_state[3])
-				old_x = self.distance2prey[0]
-				old_y = self.distance2prey[1]
-				if new_x > old_x:
-					msg = "(move east)"
-				elif new_x < old_x:
-					msg = "(move west)"
-				elif new_y > old_y:
-					msg = "(move north)"
-				elif new_y < old_y:
-					msg = "(move south)"
+				new_x = int(new_state[0]+new_state[1])-7
+				new_y = int(new_state[2]+new_state[3])-7
+				old_x = self.preycoordinates[0]
+				old_y = self.preycoordinates[1]
+				if abs(new_x) > abs(old_x):
+					if new_x > 0:
+						msg = "(move east)"
+					else:
+						msg = "(move west)"
+				elif abs(new_x) < abs(old_x):
+					if new_x > 0:
+						msg = "(move west)"
+					else:
+						msg = "(move east)"
+				elif abs(new_y) > abs(old_y):
+					if new_y > 0:
+						msg = "(move north)"
+					else:
+						msg = "(move south)"
+				elif abs(new_y) < abs(old_y):
+					if new_y > 0:
+						msg = "(move south)"
+					else:
+						msg = "(move north)"
 				else:
 					msg = "(move none)"
 		return msg
