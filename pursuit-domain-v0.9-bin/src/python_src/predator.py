@@ -155,7 +155,7 @@ class Ass2Predator:
     # determines the next movement command for this agent
 	def determineMovementCommand( self ):
 		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:
-#			print '######################## QLEARN ##########################'
+			print 'Start QLEARN'
 			self.qlearn = True
 
 		if not self.qlearn:
@@ -178,33 +178,22 @@ class Ass2Predator:
 					msg = "(move east)"
 				elif(rand == 4):
 					msg = "(move none)"
-			else:				
+			else:
 				possible_states = self.getAllPossibleStates()
 				new_state = self.selectBestPossibleState(possible_states)
 				new_x = int(new_state[0]+new_state[1])-7
 				new_y = int(new_state[2]+new_state[3])-7
 				old_x = self.preycoordinates[0]
 				old_y = self.preycoordinates[1]
-				if abs(new_x) > abs(old_x):
-					if new_x > 0:
-						msg = "(move east)"
-					else:
-						msg = "(move west)"
-				elif abs(new_x) < abs(old_x):
-					if new_x > 0:
-						msg = "(move west)"
-					else:
-						msg = "(move east)"
-				elif abs(new_y) > abs(old_y):
-					if new_y > 0:
-						msg = "(move north)"
-					else:
-						msg = "(move south)"
-				elif abs(new_y) < abs(old_y):
-					if new_y > 0:
-						msg = "(move south)"
-					else:
-						msg = "(move north)"
+				
+				if new_x > old_x:
+					msg = "(move east)"
+				elif new_x < old_x:
+					msg = "(move west)"
+				elif new_y > old_y:
+					msg = "(move north)"
+				elif new_y < old_y:
+					msg = "(move south)"
 				else:
 					msg = "(move none)"
 		return msg
@@ -306,6 +295,7 @@ class Ass2Predator:
 				max_states.append(state)
 			elif self.Q.get(state,0) > max_q:
 				max_states = [state]
+				max_q = self.Q.get(state,0)
 		return max_states[random.randint(0, len(max_states)-1)]
 
 	def	getAllPossibleStates( self ):
@@ -314,7 +304,7 @@ class Ass2Predator:
 		))
 		next_predator_coord = ( self.generateNextCoordinateStates(
 			( int(self.crtstate[-1][4:6]), int(self.crtstate[-1][6:8]) )
-		)) 
+		))
 		return self.permutate( next_prey_coord, next_predator_coord )
 
 	# Return all combinations of list1 and list2
@@ -348,6 +338,9 @@ class Ass2Predator:
 
 	def processEpisodeEnded( self ):
 		self.updateQValues(0)
+		print 'Stop QLEARN and empty state stack'
+		self.qlearn = False
+		self.crtstate = [] 
 	
 	def processCollision( self ):
 		self.updateQValues(-20)
