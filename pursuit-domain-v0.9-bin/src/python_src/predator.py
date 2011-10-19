@@ -117,9 +117,9 @@ class Predator:
 class Ass2Predator:
 	sock = None
 	
-	l = 0.9
-	gamma = 1
-	epsilon = 0.1
+	l = 0.99
+	gamma = 0.5
+	epsilon = 0.01
 	Q = {}
 	crtstate = []
 	
@@ -159,7 +159,7 @@ class Ass2Predator:
 			self.qlearn = True
 
 		if not self.qlearn:
-			msg = self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
+			return self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
 		else:
 			if self.distance2prey[0]+self.distance2prey[1] > 9:
 				self.updateQValues(-2)
@@ -343,10 +343,10 @@ class Ass2Predator:
 		self.crtstate = [] 
 	
 	def processCollision( self ):
-		self.updateQValues(-20)
+		self.updateQValues(-1000)
 	
 	def processPenalize( self ):
-		self.updateQValues(-10)
+		self.updateQValues(-20)
 
     # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
 	def connect( self, host='', port=4001 ):
