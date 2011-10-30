@@ -299,6 +299,194 @@ class QPredator:
         self.sock.close()                                         
         pass
 
+# MAIN CLASS
+class QPredator2:
+
+    sock = None
+    Qlearn = False
+    Q = {}
+    crtstate = ''
+    prevstate = ''
+    predprev = (0,0)
+    distance2prey = 0 
+    
+    r = -1
+
+    # Learning parameters
+    alpha = 0.9
+    gamma = 0.9
+    l = 0.9
+    epsilon = 0.1
+
+    # processes the incoming visualization messages from the server
+    def processVisualInformation( self, msg ):
+			if string.find( msg, '(see)' ) == 0:
+				return
+			# strip the '(see ' and the ')'
+			msg = msg[6:-3]
+			observations = string.split(msg, ') (')
+			preystate = ''
+			predstate = ''
+			for o in observations:
+				(obj, x, y) = string.split(o, " ")
+				if(obj=='prey'):
+					self.distance2prey = abs(int(x))+ abs(int(y))
+					if(self.distance2prey<7): 
+						self.Qlearn = True
+						preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+				else:
+					predstate += '%02d%02d' % (int(x)+7,int(y)+7)
+					# Extract move made in previous state by other predator
+					# and append it to the previous state description
+					if not self.prevstate == '':
+						if self.predprev[1] > (int(y)+7): # south
+							self.prevstate = self.prevstate + str(0)
+						elif self.predprev[1] < (int(y)+7): # north
+							self.prevstate = self.prevstate + str(1)
+						elif self.predprev[0] > (int(x)+7): # west
+							self.prevstate = self.prevstate + str(2)
+						elif self.predprev[0] < (int(x)+7): # east
+							self.prevstate = self.prevstate + str(3)
+						else: # none
+							self.prevstate = self.prevstate + str(4)
+					self.predprev = (int(x)+7, int(y)+7)
+			state = preystate+predstate
+			self.crtstate = state
+
+    # determines the next movement command for this agent
+    def determineMovementCommand( self ):
+      if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
+        rand = random.randint(0, 4)                   
+        if(rand == 0):
+          msg = "(move south)"
+        elif(rand == 1):
+          msg = "(move north)"
+        elif(rand == 2):
+          msg = "(move west)"
+        elif(rand == 3):
+          msg = "(move east)"
+        elif(rand == 4):
+          msg = "(move none)"
+      else:
+        a =  self.getA()
+        if(a==0):
+          msg = "(move south)"
+        elif(a==1):
+          msg = "(move north)"
+        elif(a==2):
+          msg = "(move west)"
+        elif(a==3):
+          msg = "(move east)"
+        else:
+          msg = "(move none)"
+        self.crtstate = self.crtstate+str(a)
+        # Q-update
+        if(self.distance2prey>8):
+          self.Qlearn = False
+          self.r = -200
+        self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
+      
+        if(self.distance2prey>8):
+          self.prevstate = ''
+      if(self.Qlearn):
+				# Store partial prevstate, predator move will be 
+				# appended in the next visual processing
+				self.prevstate = self.crtstate
+
+      self.r=-1
+      return msg
+
+    def getA(self):
+			# lookup 5 (s,a) pairs in Q
+			Qvals = {}
+			for i in range(0,5):
+				for j in range(0,5):
+					Qvals[(i,j)] = self.Q.get(self.crtstate+str(i)+str(j),0)
+			# Find maximum Q-values
+			maxQ = float('-inf')
+			Qacts = []
+			for k in Qvals:
+				if(maxQ<Qvals[k]):
+					Qacts = [k[0]]
+					maxQ = Qvals[k]
+				elif(maxQ==Qvals[k]):
+					Qacts.append(k[0])
+			
+			# return random maxQ action
+			return random.choice(Qacts)
+
+    # determine a communication message 
+    def determineCommunicationCommand( self ):
+        # TODO: Assignment 3
+        return ""
+
+    # process the incoming visualization messages from the server   
+    def processCommunicationInformation( self, str ):
+        # TODO: Assignment 3
+        pass
+
+    def processEpisodeEnded( self ):
+       # TODO: initialize used variables (if any)
+       self.Qlearn = False
+       self.prevstate = ''
+       self.crtstate = ''
+       self.r = -1
+       
+    def processCollision( self ):
+       # TODO: is called when predator collided or penalized
+       self.r = -1000
+
+    def processPenalize( self ):
+       # TODO: is called when predator collided or penalized
+       pass
+
+    # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
+    def connect( self, host='', port=4001 ):
+        self.sock = socket( AF_INET, SOCK_DGRAM)                  
+        self.sock.bind( ( '', 0 ) )                               
+        self.sock.sendto( "(init predator)" , (host, port ) )       
+        pass
+  
+    def mainLoop( self ):
+        msg, addr = self.sock.recvfrom( 1024 )                    
+        self.sock.connect( addr )                                 
+        ret = 1
+        while ret:
+            msg = self.sock.recv( 1024 )                            
+            if string.find( msg, '(quit' ) == 0 :
+                # quit message
+                ret = 0                                       
+
+            elif string.find( msg, '(hear' ) == 0 :
+                # process audio
+                self.processCommunicationInformation( msg )
+
+            elif string.find( msg, '(see' ) == 0 :
+                # process visual
+                self.processVisualInformation( msg )
+
+                msg = self.determineCommunicationCommand( )
+                if len(msg) > 0:
+                    self.sock.send( msg )
+        
+            elif string.find( msg, '(send_action' ) == 0 :  
+                msg = self.determineMovementCommand( )
+                self.sock.send( msg )           
+
+            elif string.find( msg, '(referee episode_ended)' ) == 0:  
+                msg = self.processEpisodeEnded( )
+         
+            elif string.find( msg, '(referee collision)' ) == 0:  
+                msg = self.processCollision( )
+
+            elif string.find( msg, '(referee penalize)' ) == 0:  
+                msg = self.processPenalize( )
+                
+            else:
+                print "msg not understood " + msg
+        self.sock.close()                                         
+        pass
+
 
 # MAIN CLASS
 class Ass2Predator:
@@ -585,6 +773,6 @@ class Ass2Predator:
 
 
 if __name__ == "__main__":
-	predator = QPredator()	
+	predator = QPredator2()	
 	predator.connect()
 	predator.mainLoop()
