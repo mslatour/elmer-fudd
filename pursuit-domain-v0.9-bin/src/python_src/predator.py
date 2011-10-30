@@ -369,17 +369,31 @@ class QPredator2:
         elif(rand == 4):
           msg = "(move none)"
       else:
-        a =  self.getA()
-        if(a==0):
-          msg = "(move south)"
-        elif(a==1):
-          msg = "(move north)"
-        elif(a==2):
-          msg = "(move west)"
-        elif(a==3):
-          msg = "(move east)"
+        if(random.random()<self.epsilon):
+          rand = random.randint(0, 4)                   
+          if(rand == 0):
+            msg = "(move south)"
+          elif(rand == 1):
+            msg = "(move north)"
+          elif(rand == 2):
+            msg = "(move west)"
+          elif(rand == 3):
+            msg = "(move east)"
+          elif(rand == 4):
+            msg = "(move none)"
         else:
-          msg = "(move none)"
+          a =  self.getA()
+          if(a==1):
+            msg = "(move south)"
+          elif(a==2):
+            msg = "(move north)"
+          elif(a==3):
+            msg = "(move west)"
+          elif(a==4):
+            msg = "(move east)"
+          else:
+            msg = "(move none)"
+
         self.crtstate = self.crtstate+str(a)
         # Q-update
         if(self.distance2prey>8):
@@ -435,6 +449,7 @@ class QPredator2:
 		self.episodes = self.episodes + 1
 		if self.episodes % 100 == 0:
 			print self.episodes
+    self.epsilon *= 0.999
        
     def processCollision( self ):
        # TODO: is called when predator collided or penalized
