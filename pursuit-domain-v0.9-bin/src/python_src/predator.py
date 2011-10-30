@@ -310,7 +310,8 @@ class QPredator2:
     predprev = (0,0)
     distance2prey = 0 
     episodes = 0
-    
+    preyx = 0
+    preyy = 0
     r = -1
 
     # Learning parameters
@@ -335,6 +336,8 @@ class QPredator2:
 				if(self.distance2prey<7): 
 					self.Qlearn = True
 					preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+                                self.preyx = int(x)
+                                self.preyy = int(y)
 			else:
 				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
 				# Extract move made in previous state by other predator
