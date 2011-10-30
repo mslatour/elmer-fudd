@@ -309,6 +309,7 @@ class QPredator2:
     prevstate = ''
     predprev = (0,0)
     distance2prey = 0 
+    episodes = 0
     
     r = -1
 
@@ -320,40 +321,40 @@ class QPredator2:
 
     # processes the incoming visualization messages from the server
     def processVisualInformation( self, msg ):
-			if string.find( msg, '(see)' ) == 0:
-				return
-			# strip the '(see ' and the ')'
-			msg = msg[6:-3]
-			observations = string.split(msg, ') (')
-			preystate = ''
-			predstate = ''
-			for o in observations:
-				(obj, x, y) = string.split(o, " ")
-				if(obj=='prey'):
-					self.distance2prey = abs(int(x))+ abs(int(y))
-					if(self.distance2prey<7): 
-						self.Qlearn = True
-						preystate += '%02d%02d' % (int(x)+7, int(y)+7)
-				else:
-					predstate += '%02d%02d' % (int(x)+7,int(y)+7)
-					# Extract move made in previous state by other predator
-					# and append it to the previous state description
-					if not self.prevstate == '':
-						if self.predprev[1] > (int(y)+7): # south
-							self.prevstate = self.prevstate + str(0)
-						elif self.predprev[1] < (int(y)+7): # north
-							self.prevstate = self.prevstate + str(1)
-						elif self.predprev[0] > (int(x)+7): # west
-							self.prevstate = self.prevstate + str(2)
-						elif self.predprev[0] < (int(x)+7): # east
-							self.prevstate = self.prevstate + str(3)
-						else: # none
-							self.prevstate = self.prevstate + str(4)
-					self.predprev = (int(x)+7, int(y)+7)
-			state = preystate+predstate
-			self.crtstate = state
+		if string.find( msg, '(see)' ) == 0:
+			return
+		# strip the '(see ' and the ')'
+		msg = msg[6:-3]
+		observations = string.split(msg, ') (')
+		preystate = ''
+		predstate = ''
+		for o in observations:
+			(obj, x, y) = string.split(o, " ")
+			if(obj=='prey'):
+				self.distance2prey = abs(int(x))+ abs(int(y))
+				if(self.distance2prey<7): 
+					self.Qlearn = True
+					preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+			else:
+				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
+				# Extract move made in previous state by other predator
+				# and append it to the previous state description
+				if not self.prevstate == '':
+					if self.predprev[1] > (int(y)+7): # south
+						self.prevstate = self.prevstate + str(0)
+					elif self.predprev[1] < (int(y)+7): # north
+						self.prevstate = self.prevstate + str(1)
+					elif self.predprev[0] > (int(x)+7): # west
+						self.prevstate = self.prevstate + str(2)
+					elif self.predprev[0] < (int(x)+7): # east
+						self.prevstate = self.prevstate + str(3)
+					else: # none
+						self.prevstate = self.prevstate + str(4)
+				self.predprev = (int(x)+7, int(y)+7)
+		state = preystate+predstate
+		self.crtstate = state
 
-    # determines the next movement command for this agent
+	# determines the next movement command for this agent
     def determineMovementCommand( self ):
       if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
         rand = random.randint(0, 4)                   
@@ -426,11 +427,14 @@ class QPredator2:
         pass
 
     def processEpisodeEnded( self ):
-       # TODO: initialize used variables (if any)
-       self.Qlearn = False
-       self.prevstate = ''
-       self.crtstate = ''
-       self.r = -1
+		# TODO: initialize used variables (if any)
+		self.Qlearn = False
+		self.prevstate = ''
+		self.crtstate = ''
+		self.r = -1
+		self.episodes = self.episodes + 1
+		if self.episodes % 100 == 0:
+			print self.episodes
        
     def processCollision( self ):
        # TODO: is called when predator collided or penalized
