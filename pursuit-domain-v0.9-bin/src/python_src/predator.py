@@ -356,60 +356,61 @@ class QPredator2:
 
 	# determines the next movement command for this agent
     def determineMovementCommand( self ):
-      if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
-        rand = random.randint(0, 4)                   
-        if(rand == 0):
-          msg = "(move south)"
-        elif(rand == 1):
-          msg = "(move north)"
-        elif(rand == 2):
-          msg = "(move west)"
-        elif(rand == 3):
-          msg = "(move east)"
-        elif(rand == 4):
-          msg = "(move none)"
-      else:
-        if(random.random()<self.epsilon):
-          rand = random.randint(0, 4)                   
-          if(rand == 0):
-            msg = "(move south)"
-          elif(rand == 1):
-            msg = "(move north)"
-          elif(rand == 2):
-            msg = "(move west)"
-          elif(rand == 3):
-            msg = "(move east)"
-          elif(rand == 4):
-            msg = "(move none)"
+        if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
+            rand = random.randint(0, 4)                   
+            if(rand == 0):
+              msg = "(move south)"
+            elif(rand == 1):
+              msg = "(move north)"
+            elif(rand == 2):
+              msg = "(move west)"
+            elif(rand == 3):
+              msg = "(move east)"
+            elif(rand == 4):
+              msg = "(move none)"
         else:
-          a =  self.getA()
-          if(a==1):
-            msg = "(move south)"
-          elif(a==2):
-            msg = "(move north)"
-          elif(a==3):
-            msg = "(move west)"
-          elif(a==4):
-            msg = "(move east)"
-          else:
-            msg = "(move none)"
+            if(random.random()<self.epsilon):
+              rand = random.randint(0, 4)                   
+              if(rand == 0):
+                msg = "(move south)"
+              elif(rand == 1):
+                msg = "(move north)"
+              elif(rand == 2):
+                msg = "(move west)"
+              elif(rand == 3):
+                msg = "(move east)"
+              elif(rand == 4):
+                msg = "(move none)"
+            else:
+              a =  self.getA()
+              if(a==1):
+                msg = "(move south)"
+              elif(a==2):
+                msg = "(move north)"
+              elif(a==3):
+                msg = "(move west)"
+              elif(a==4):
+                msg = "(move east)"
+              else:
+                msg = "(move none)"
 
-        self.crtstate = self.crtstate+str(a)
-        # Q-update
-        if(self.distance2prey>8):
-          self.Qlearn = False
-          self.r = -200
-        self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
+              self.crtstate = self.crtstate+str(a)
+            # Q-update
+            if(self.distance2prey>8):
+              self.Qlearn = False
+              self.r = -200
+        
+            self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
       
-        if(self.distance2prey>8):
-          self.prevstate = ''
-      if(self.Qlearn):
-				# Store partial prevstate, predator move will be 
-				# appended in the next visual processing
-				self.prevstate = self.crtstate
+            if(self.distance2prey>8):
+              self.prevstate = ''
+        if(self.Qlearn):
+          # Store partial prevstate, predator move will be 
+          # appended in the next visual processing
+          self.prevstate = self.crtstate
 
-      self.r=-1
-      return msg
+        self.r=-1
+        return msg
 
     def getA(self):
 			# lookup 5 (s,a) pairs in Q
@@ -442,14 +443,14 @@ class QPredator2:
 
     def processEpisodeEnded( self ):
 		# TODO: initialize used variables (if any)
-		self.Qlearn = False
-		self.prevstate = ''
-		self.crtstate = ''
-		self.r = -1
-		self.episodes = self.episodes + 1
-		if self.episodes % 100 == 0:
-			print self.episodes
-    self.epsilon *= 0.999
+        self.Qlearn = False
+        self.prevstate = ''
+        self.crtstate = ''
+        self.r = -1
+        self.episodes = self.episodes + 1
+        if self.episodes % 100 == 0:
+            print self.episodes
+        self.epsilon *= 0.999
        
     def processCollision( self ):
        # TODO: is called when predator collided or penalized
@@ -738,8 +739,8 @@ class Ass2Predator:
 	
 	def processCollision( self ):
 		self.updateQValues(-1000)
- 		self.qlearn = False
- 		self.crtstate = []
+		self.qlearn = False
+		self.crtstate = []
 	
 	def processPenalize( self ):
 		self.updateQValues(-20)
