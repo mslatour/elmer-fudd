@@ -1,0 +1,8 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}
+\BOOKMARK [1][-]{section.2}{Theory}{}
+\BOOKMARK [1][-]{section.3}{Application}{}
+\BOOKMARK [2][-]{subsection.3.1}{State Space}{section.3}
+\BOOKMARK [1][-]{section.4}{Experiments}{}
+\BOOKMARK [2][-]{subsection.4.1}{Q-learning for independent agents}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Q-learning for cooperative agents}{section.4}
+\BOOKMARK [1][-]{section.5}{Conclusion}{}
