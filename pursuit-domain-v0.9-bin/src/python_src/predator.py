@@ -357,17 +357,19 @@ class QPredator2:
 	# determines the next movement command for this agent
     def determineMovementCommand( self ):
         if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
-            rand = random.randint(0, 4)                   
-            if(rand == 0):
-              msg = "(move south)"
-            elif(rand == 1):
-              msg = "(move north)"
-            elif(rand == 2):
-              msg = "(move west)"
-            elif(rand == 3):
+          if(self.preyy>self.preyx):
+            if(self.preyx>0):
               msg = "(move east)"
-            elif(rand == 4):
-              msg = "(move none)"
+            else:
+              msg = "(move west)"
+
+          elif(self.preyx>self.preyy):
+            if(self.preyy>-1):
+              msg = "(move north)"
+            else:
+              msg = "(move south)"
+          else:
+            msg = "(move none)"
         else:
             if(random.random()<self.epsilon):
               rand = random.randint(0, 4)                   
@@ -454,7 +456,7 @@ class QPredator2:
        
     def processCollision( self ):
        # TODO: is called when predator collided or penalized
-       self.r = -1000
+       self.r = -1
 
     def processPenalize( self ):
        # TODO: is called when predator collided or penalized
