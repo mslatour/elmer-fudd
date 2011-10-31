@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2011.5.29)  30 OCT 2011 23:35
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2011.5.29)  31 OCT 2011 02:01
 entering extended mode
  %&-line parsing enabled.
 **MAS2_report_Latour_Molen_Jurriaans.tex
@@ -616,8 +616,8 @@ rning (ext4): destination with the same identifier (name{page.1}) has been alre
 ady used, duplicate ignored
 <to be read again> 
                    \relax 
-l.101 
-       [1] [2] <img/sarsa1_explo_noexpan.png, id=81, 1283.194pt x 597.432pt>
+l.99 
+      [1] [2] <img/sarsa1_explo_noexpan.png, id=81, 1283.194pt x 597.432pt>
 File: img/sarsa1_explo_noexpan.png Graphic file (type png)
 
 <use img/sarsa1_explo_noexpan.png>
@@ -632,13 +632,13 @@ tifier (name{figure.1}) has been already used, duplicate ignored
 
 \@EveryShipout@Output ...@Org@Shipout \box \@cclv 
                                                   
-l.147 \end{figure}
+l.145 \end{figure}
                   pdfTeX warning (ext4): destination with the same identifier (
 name{figure.2}) has been already used, duplicate ignored
 
 \@EveryShipout@Output ...@Org@Shipout \box \@cclv 
                                                   
-l.147 \end{figure}
+l.145 \end{figure}
                    <./img/sarsa1_explo_noexpan.png (PNG copy)> <./img/sarsa_exp
 lor.png (PNG copy)>] <img/cap4_ind.png, id=94, 1283.194pt x 597.432pt>
 File: img/cap4_ind.png Graphic file (type png)
@@ -648,13 +648,13 @@ ifier (name{figure.3}) has been already used, duplicate ignored
 
 \@EveryShipout@Output ...@Org@Shipout \box \@cclv 
                                                   
-l.178 \end{document}
+l.176 \end{document}
                     pdfTeX warning (ext4): destination with the same identifier
  (name{figure.4}) has been already used, duplicate ignored
 
 \@EveryShipout@Output ...@Org@Shipout \box \@cclv 
                                                   
-l.178 \end{document}
+l.176 \end{document}
                      <./img/expansion.png (PNG copy)> <./img/cap4_ind.png (PNG 
 copy)>] (./MAS2_report_Latour_Molen_Jurriaans.aux) ) 
 Here is how much of TeX's memory you used:
@@ -676,7 +676,7 @@ are/texmf/fonts/type1/bluesky/cm/cmr6.pfb></usr/share/texmf/fonts/type1/bluesky
 f/fonts/type1/bluesky/cm/cmr9.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmsy
 10.pfb></usr/share/texmf/fonts/type1/bluesky/cm/cmsy5.pfb></usr/share/texmf/fon
 ts/type1/bluesky/cm/cmsy7.pfb>
-Output written on MAS2_report_Latour_Molen_Jurriaans.pdf (5 pages, 142802 bytes
+Output written on MAS2_report_Latour_Molen_Jurriaans.pdf (5 pages, 143129 bytes
 ).
 PDF statistics:
  153 PDF objects out of 1000 (max. 8388607)
