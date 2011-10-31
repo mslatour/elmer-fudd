@@ -201,12 +201,8 @@ class QPredator:
           self.prevstate = ''
       if(self.Qlearn): self.prevstate = self.crtstate
 
-
       self.r=-1
       return msg
-
-
-
 
     def getA(self):
 
@@ -307,12 +303,14 @@ class QPredator2:
     Q = {}
     crtstate = ''
     prevstate = ''
+    prevprevstate = ''
     predprev = (0,0)
     distance2prey = 0 
     episodes = 0
     preyx = 0
     preyy = 0
     r = -1
+    aCorrection = (0,0)
 
     # Learning parameters
     alpha = 0.9
@@ -327,91 +325,115 @@ class QPredator2:
 		# strip the '(see ' and the ')'
 		msg = msg[6:-3]
 		observations = string.split(msg, ') (')
-		preystate = ''
-		predstate = ''
+		preystate = ""
+		predstate = ""
 		for o in observations:
 			(obj, x, y) = string.split(o, " ")
 			if(obj=='prey'):
 				self.distance2prey = abs(int(x))+ abs(int(y))
+				preystate += '%02d%02d' % (int(x)+7, int(y)+7)
+				self.preyx = int(x)
+				self.preyy = int(y)
 				if(self.distance2prey<7): 
 					self.Qlearn = True
-					preystate += '%02d%02d' % (int(x)+7, int(y)+7)
-                                self.preyx = int(x)
-                                self.preyy = int(y)
 			else:
 				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
 				# Extract move made in previous state by other predator
 				# and append it to the previous state description
 				if not self.prevstate == '':
-					if self.predprev[1] > (int(y)+7): # south
-						self.prevstate = self.prevstate + str(0)
-					elif self.predprev[1] < (int(y)+7): # north
-						self.prevstate = self.prevstate + str(1)
-					elif self.predprev[0] > (int(x)+7): # west
-						self.prevstate = self.prevstate + str(2)
-					elif self.predprev[0] < (int(x)+7): # east
-						self.prevstate = self.prevstate + str(3)
-					else: # none
-						self.prevstate = self.prevstate + str(4)
-				self.predprev = (int(x)+7, int(y)+7)
+					if self.predprev[1] > (int(y)+self.aCorrection[1]): # south
+						self.prevstate += "0"
+					elif self.predprev[1] < (int(y)+self.aCorrection[1]): # north
+						self.prevstate += "1"
+					elif self.predprev[0] > (int(x)+self.aCorrection[0]): # west
+						self.prevstate += "2"
+					elif self.predprev[0] < (int(x)+self.aCorrection[0]): # east
+						self.prevstate += "3"
+					elif self.predprev[0] == (int(x)+self.aCorrection[0]): # none
+						self.prevstate += "4"
+					else:
+						print "Cannot find predator direction"
+						print "Relative predator coordinates: (%d, %d)" % (int(x), int(y))
+						print "Correction based on my action: (%d,%d)" % (self.aCorrection[0], self.aCorrection[1])
+						print "Corrected relative predator coordinates: (%d,%d)" % (int(x)+self.aCorrection[0],int(y)+self.aCorrection[1])
+						print "Old relative predator coordinates: (%d,%d)" % (self.predprev[0], self.predprev[1])
+				self.predprev = (int(x), int(y))
 		state = preystate+predstate
 		self.crtstate = state
 
 	# determines the next movement command for this agent
     def determineMovementCommand( self ):
         if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
-          if(self.preyy>self.preyx):
+		  # If this predator is already close enough, 
+		  # stay there and wait for the other
+          if(abs(self.preyy)>=abs(self.preyx)):
             if(self.preyx>0):
               msg = "(move east)"
+              self.aCorrection = (1,0)
             else:
               msg = "(move west)"
+              self.aCorrection = (-1,0)
 
-          elif(self.preyx>self.preyy):
+          elif(abs(self.preyx)>abs(self.preyy)):
             if(self.preyy>-1):
               msg = "(move north)"
+              self.aCorrection = (0,1)
             else:
               msg = "(move south)"
-          else:
-            msg = "(move none)"
+              self.aCorrection = (0,-1)
         else:
             if(random.random()<self.epsilon):
-              rand = random.randint(0, 4)                   
-              if(rand == 0):
+              a = random.randint(0, 4)                   
+              if(a == 0):
                 msg = "(move south)"
-              elif(rand == 1):
+                self.aCorrection = (0,-1)
+              elif(a == 1):
                 msg = "(move north)"
-              elif(rand == 2):
+                self.aCorrection = (0,1)
+              elif(a == 2):
                 msg = "(move west)"
-              elif(rand == 3):
+                self.aCorrection = (-1,0)
+              elif(a == 3):
                 msg = "(move east)"
-              elif(rand == 4):
+                self.aCorrection = (1,0)
+              elif(a == 4):
                 msg = "(move none)"
+                self.aCorrection = (0,0)
             else:
               a =  self.getA()
-              if(a==1):
+              if(a==0):
+                self.aCorrection = (0,-1)
                 msg = "(move south)"
-              elif(a==2):
+              elif(a==1):
+                self.aCorrection = (0,1)
                 msg = "(move north)"
-              elif(a==3):
+              elif(a==2):
+                self.aCorrection = (-1,0)
                 msg = "(move west)"
-              elif(a==4):
+              elif(a==3):
+                self.aCorrection = (1,0)
                 msg = "(move east)"
               else:
+                self.aCorrection = (0,0)
                 msg = "(move none)"
 
-              self.crtstate = self.crtstate+str(a)
+            self.crtstate = self.crtstate+str(a)
             # Q-update
             if(self.distance2prey>8):
               self.Qlearn = False
               self.r = -200
-        
-            self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
+            
+            if len(self.prevprevstate) == 10:
+              self.Q[self.prevprevstate] = self.Q.get(self.prevprevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.prevstate,0)-self.Q.get(self.prevprevstate,0)))
       
             if(self.distance2prey>8):
+              self.prevprevstate = ''
               self.prevstate = ''
         if(self.Qlearn):
           # Store partial prevstate, predator move will be 
           # appended in the next visual processing
+          if len(self.prevstate) == 10:
+            self.prevprevstate = self.prevstate
           self.prevstate = self.crtstate
 
         self.r=-1
@@ -436,6 +458,26 @@ class QPredator2:
 			# return random maxQ action
 			return random.choice(Qacts)
 
+    def printState(self, label, state):
+		a2str = {"0":"South","1":"North","2":"West","3":"East","4":"None"}
+		print label
+		print "########################"
+		if not state == '':
+			print "State: %s" % state
+			print "Prey x: %s\nPrey y: %s" % (state[0:2], state[2:4])
+			print "Predator x: %s\nPredator y: %s" % (state[4:6], state[6:8])
+			if 8 in range(len(state)):
+				print "My action: %s" % a2str[state[8]]
+			else:
+				print "My action: ?"
+			if 9 in range(len(state)):
+				print "Predator action: %s" % a2str[state[9]]
+			else:
+				print "Predator action: ?"
+		else:
+			print "EMPTY"
+		print "########################\n"
+
     # determine a communication message 
     def determineCommunicationCommand( self ):
         # TODO: Assignment 3
@@ -447,7 +489,6 @@ class QPredator2:
         pass
 
     def processEpisodeEnded( self ):
-		# TODO: initialize used variables (if any)
         self.Qlearn = False
         self.prevstate = ''
         self.crtstate = ''
