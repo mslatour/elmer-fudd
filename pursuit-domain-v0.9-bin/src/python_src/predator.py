@@ -114,6 +114,7 @@ class Predator:
 
 
 # MAIN CLASS
+# MAIN CLASS
 class QPredator:
 
     sock = None
@@ -122,15 +123,24 @@ class QPredator:
     crtstate = ''
     prevstate = '' 
     distance2prey = 0 
-    
+   
+    mindis = 7
+
     r = -1
 
     # Learning parameters
-    alpha = 0.9
-    gamma = 0.9
+    alpha = 0.99
+    gamma = 1
     l = 0.9
     epsilon = 0.1
+    preyx = 0
+    preyy = 0
 
+    tau = 0.999
+    episodesran = 0
+
+    def __init__(self, Q):
+      self.Q = Q
 
     # processes the incoming visualization messages from the server
     def processVisualInformation( self, msg ):
@@ -147,8 +157,11 @@ class QPredator:
         #print obj + " seen at (" + x + ", " + y + ")"
           if(obj=='prey'):
             self.distance2prey = abs(int(x))+ abs(int(y))
+            self.preyx = int(x)
+            self.preyy = int(y)
+
             #print self.distance2prey
-            if(self.distance2prey<7): 
+            if(self.distance2prey<self.mindis): 
               self.Qlearn = True
             preystate += '%02d%02d' % (int(x)+7, int(y)+7)
           else:
@@ -157,52 +170,67 @@ class QPredator:
         self.crtstate = state
 
 
-            #print obj + " seen at (" + x + ", " + y + ")"
-            # implementation should be done by students            
-            # TODO: process these relative x and y coordinates
-
     # determines the next movement command for this agent
     def determineMovementCommand( self ):
 
       if(not (self.Qlearn) or (self.Qlearn and self.prevstate=='')):
-        rand = random.randint(0, 4)                   
-        if(rand == 0):
-          msg = "(move south)"
-        elif(rand == 1):
-          msg = "(move north)"
-        elif(rand == 2):
-          msg = "(move west)"
-        elif(rand == 3):
-          msg = "(move east)"
-        elif(rand == 4):
-          msg = "(move none)"
-      else:
-        a =  self.getA()
-        if(a==1):
-          msg = "(move south)"
-        elif(a==2):
-          msg = "(move north)"
-        elif(a==3):
-          msg = "(move west)"
-        elif(a==4):
-          msg = "(move east)"
+        if(self.preyy>self.preyx):
+          if(self.preyx>0):
+            msg = "(move east)"
+          else:
+            msg = "(move west)"
+
+        elif(self.preyx>self.preyy):
+          if(self.preyy>-1):
+            msg = "(move north)"
+          else:
+            msg = "(move south)"
         else:
           msg = "(move none)"
-        self.crtstate = self.crtstate+str(a)
+      else:
+        if(random.random()<self.epsilon):
+          rand = random.randint(0, 4)                   
+          if(rand == 0):
+            msg = "(move south)"
+          elif(rand == 1):
+            msg = "(move north)"
+          elif(rand == 2):
+            msg = "(move west)"
+          elif(rand == 3):
+            msg = "(move east)"
+          elif(rand == 4):
+            msg = "(move none)"
+        else:
+          a =  self.getA()
+          if(a==1):
+            msg = "(move south)"
+          elif(a==2):
+            msg = "(move north)"
+          elif(a==3):
+            msg = "(move west)"
+          elif(a==4):
+            msg = "(move east)"
+          else:
+            msg = "(move none)"
+          self.crtstate = self.crtstate+str(a)
 
         # Q-update
-        if(self.distance2prey>8):
+        if(self.distance2prey>self.mindis+1):
           self.Qlearn = False
           self.r = -200
           
         self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
       
-        if(self.distance2prey>8):
+        if(self.distance2prey>self.mindis+1):
           self.prevstate = ''
       if(self.Qlearn): self.prevstate = self.crtstate
 
+
       self.r=-1
       return msg
+
+
+
 
     def getA(self):
 
@@ -239,10 +267,22 @@ class QPredator:
        self.prevstate = ''
        self.crtstate = ''
        self.r = -1
-       
+
+       self.episodesran +=1
+       if(self.episodesran % 1000 == 0):
+         p = open("Qmatrices/CrtQ", "wb")
+         pickle.dump(self.Q, p)
+         p.close()      
+       self.tau *= self.tau
+       self.epsilon *= self.tau
+
+       if(self.episodesran % 5000 == 0):
+         self.mindis += 0
+    
     def processCollision( self ):
        # TODO: is called when predator collided or penalized
-       self.r = -1000
+       self.r = -1
+       self.Q[self.prevstate] = self.Q.get(self.prevstate,0)+ self.alpha*(self.r+self.gamma*(self.Q.get(self.crtstate,0)-self.Q.get(self.prevstate,0)))
 
     def processPenalize( self ):
        # TODO: is called when predator collided or penalized
@@ -552,289 +592,6 @@ class QPredator2:
                 print "msg not understood " + msg
         self.sock.close()                                         
         pass
-
-
-# MAIN CLASS
-class Ass2Predator:
-	sock = None
-	
-	l = 0.99
-	gamma = 0.5
-	epsilon = 0.01
-	Q = {}
-	crtstate = []
-	
-	qlearn = False
-
-	distance2prey = (28,28)
-	distance2predator = (28,28)
-	preycoordinates = (0,0)
-	predatorcoordinates = (0,0)
-
-    # processes the incoming visualization messages from the server
-	def processVisualInformation( self, msg ):
-		if string.find( msg, '(see)' ) == 0:
-			return
-		# strip the '(see ' and the ')'
-		msg = msg[6:-3]
-		observations = string.split(msg, ') (')
-		preystate = ''
-		predstate = ''
-		for o in observations:
-			(obj, x, y) = string.split(o, " ")
-			#print obj + " seen at (" + x + ", " + y + ")"
-			if(obj=='prey'):
-				self.distance2prey = (abs(int(x)), abs(int(y)))
-				preystate += '%02d%02d' % (int(x)+7, int(y)+7)
-				self.preycoordinates = (int(x), int(y))
-			else:
-				predstate += '%02d%02d' % (int(x)+7,int(y)+7)
-				self.predatorcoordinates = (int(x), int(y))
-		state = preystate+predstate
-		self.crtstate.append(state)
-		
-    # determines the next movement command for this agent
-	def determineMovementCommand( self ):
-		if self.distance2prey[0]+self.distance2prey[1] <= 6 and not self.qlearn:
-			print 'Start QLEARN'
-			self.qlearn = True
-
-		if not self.qlearn:
-			return self.movepreQ(self.preycoordinates, self.predatorcoordinates)		
-		else:
-			if self.distance2prey[0]+self.distance2prey[1] > 9:
-				self.updateQValues(-2)
-			else:
-				self.updateQValues(-1)
-
-			if random.random() < self.epsilon:
-				rand = random.randint(0, 4)
-				if(rand == 0):
-					msg = "(move south)"
-				elif(rand == 1):
-					msg = "(move north)"
-				elif(rand == 2):
-					msg = "(move west)"
-				elif(rand == 3):
-					msg = "(move east)"
-				elif(rand == 4):
-					msg = "(move none)"
-			else:
-				possible_states = self.getAllPossibleStates()
-				new_state = self.selectBestPossibleState(possible_states)
-				new_x = int(new_state[0]+new_state[1])-7
-				new_y = int(new_state[2]+new_state[3])-7
-				old_x = self.preycoordinates[0]
-				old_y = self.preycoordinates[1]
-				
-				if new_x > old_x:
-					msg = "(move east)"
-				elif new_x < old_x:
-					msg = "(move west)"
-				elif new_y > old_y:
-					msg = "(move north)"
-				elif new_y < old_y:
-					msg = "(move south)"
-				else:
-					msg = "(move none)"
-		return msg
-
-	# move, when Qlearning is not yet activated	
-	def movepreQ(self, myself, mypred):
-		# determine collision-free move.
-		# returns 'msg' which is a string describing the move 
-
-		# create preferred-move list
-		# the lower the index, the more preferred the move
-		# moves = [(dPred_Dist1, move1), (dPred_Dist2, move2), (dPred_Dist3, move3) ...]
-		# 	--> dPred_Dist = absolute total distance of predator to moving predator, after move
-		#	--> move = move taken (msg!)
-
-		moves = []	
-		if abs(myself[0]) > abs(myself[1]):
-			# x = larger!
-			if myself[0] > 0:
-				moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))		#right
-				if myself[1] > 0:		
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-				else:
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-			else:
-				moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))		#left
-				if myself[1] > 0:		
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-				else: 
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-		else:
-			# y is larger!
-			if myself[1] > 0:
-				moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))		#up
-				if myself[0] > 0:
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-				else:
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-					moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))	#down
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-			else:		
-				moves.append((abs(mypred[0])+abs(mypred[1]+1), "move south"))		#down	
-				if myself[0] > 0:	
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-				else:
-					moves.append((abs(mypred[0]+1)+abs(mypred[1]), "move west"))	#left
-					moves.append((abs(mypred[0])+abs(mypred[1]-1), "move north"))	#up
-					moves.append((abs(mypred[0]-1)+abs(mypred[1]), "move east"))	#right
-	
-		# take move which is most preferred, but does avoid collision.
-		for i in moves:
-			if i[0] > 4:		
-				return i[1]
-
-		# if there is no move possible, move away from predator
-		# (can occure after initialization)
-		if abs(mypred[0]) > abs(mypred[1]):
-			# move along x-dir
-			if mypred[0] > 0:
-				# predator is right, --> move left
-				return "move west"
-			else:
-				# predator is left, --> move right
-				return "move east"
-		else:
-			# move along y-dir
-			if mypred[1] > 0:
-				# predator is up, --> move down
-				return "move south"
-			else:
-				# predator is down, --> move up
-				return "move north"
-
-		return "move none"
-
-	# Update Q value of previous states 
-	def updateQValues( self, reward):
-		for state_index in range(len(self.crtstate), 1,-1):
-			self.Q[self.crtstate[state_index-1]] = ( (1-self.l)*self.Q.get(self.crtstate[state_index-1],0)
-				+ self.l*(reward+self.gamma*self.Q.get(self.crtstate[-1],0)) )
-
-	def selectBestPossibleState( self, possible_states):
-		max_states = []
-		max_q = float('-inf')
-		for state in possible_states:
-			if self.Q.get(state,0) == max_q:
-				max_states.append(state)
-			elif self.Q.get(state,0) > max_q:
-				max_states = [state]
-				max_q = self.Q.get(state,0)
-		return max_states[random.randint(0, len(max_states)-1)]
-
-	def	getAllPossibleStates( self ):
-		next_prey_coord = ( self.generateNextCoordinateStates( 
-			( int(self.crtstate[-1][0:2]), int(self.crtstate[-1][2:4]) ) 
-		))
-		next_predator_coord = ( self.generateNextCoordinateStates(
-			( int(self.crtstate[-1][4:6]), int(self.crtstate[-1][6:8]) )
-		))
-		return self.permutate( next_prey_coord, next_predator_coord )
-
-	# Return all combinations of list1 and list2
-	def permutate( self, list1, list2 ):
-		if len(list1) > 0:
-			elem1 = list1.pop()
-			result = self.permutate(list1, list2)
-			for elem2 in list2:
-				result.append(elem1+elem2)
-			return result
-		else:
-			return []
-
-	# Given a coordinate, generate all possible next coordinate states
-	def generateNextCoordinateStates( self, coordinate ):
-		return ([
-			'%02d%02d' % (coordinate[0],coordinate[1]),
-			'%02d%02d' % (coordinate[0],(coordinate[1]+1) % 15),
-			'%02d%02d' % (coordinate[0],(coordinate[1]-1) % 15),
-			'%02d%02d' % ((coordinate[0]+1) % 15,coordinate[1]),
-			'%02d%02d' % ((coordinate[0]-1) % 15,coordinate[1])
-		])
-
-	# determine a communication message 
-	def determineCommunicationCommand( self ):
-		return ""
-
-	# process the incoming visualization messages from the server   
-	def processCommunicationInformation( self, str ):
-		pass
-
-	def processEpisodeEnded( self ):
-		self.updateQValues(0)
-		print 'Stop QLEARN and empty state stack'
-		self.qlearn = False
-		self.crtstate = [] 
-	
-	def processCollision( self ):
-		self.updateQValues(-1000)
-		self.qlearn = False
-		self.crtstate = []
-	
-	def processPenalize( self ):
-		self.updateQValues(-20)
-
-    # BELOW ARE METODS TO CALL APPROPRIATE METHODS; CAN BE KEPT UNCHANGED
-	def connect( self, host='', port=4001 ):
-		self.sock = socket( AF_INET, SOCK_DGRAM)                  
-		self.sock.bind( ( '', 0 ) )                               
-		self.sock.sendto( "(init predator)" , (host, port ) )       
-		pass
-  
-	def mainLoop( self ):
-		msg, addr = self.sock.recvfrom( 1024 )                    
-		self.sock.connect( addr )                                 
-		ret = 1
-		while ret:
-			msg = self.sock.recv( 1024 )                            
-			if string.find( msg, '(quit' ) == 0 :
-                # quit message
-				ret = 0                                       
-            
-			elif string.find( msg, '(hear' ) == 0 :
-                # process audio
-				self.processCommunicationInformation( msg )
-            
-			elif string.find( msg, '(see' ) == 0 :
-                # process visual
-				self.processVisualInformation( msg )
-				msg = self.determineCommunicationCommand( )
-				if len(msg) > 0:
-					self.sock.send( msg )
-        
-			elif string.find( msg, '(send_action' ) == 0 :  
-				msg = self.determineMovementCommand( )
-				self.sock.send( msg )           
-            
-			elif string.find( msg, '(referee episode_ended)' ) == 0:  
-				msg = self.processEpisodeEnded( )
-         
-			elif string.find( msg, '(referee collision)' ) == 0:  
-				msg = self.processCollision( )
-
-			elif string.find( msg, '(referee penalize)' ) == 0:  
-				msg = self.processPenalize( )
-                
-			else:
-				print "msg not understood " + msg
-		self.sock.close()                                         
 
 
 
